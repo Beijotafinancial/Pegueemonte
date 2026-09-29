@@ -1,0 +1,2037 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Gestão de Eventos</title>
+<style>
+:root{--bg:#f7f4f2;--card:#fff;--text:#302b29;--muted:#7d726e;--faint:#a89e99;--border:#e7ddd8;
+--accent:#b8697a;--accent-soft:#f7e8eb;--accent-ink:#8f4d5c;--ok:#4f7d57;--ok-soft:#e8f1e9;
+--warn:#a3702f;--warn-soft:#faf0e2;--danger:#a34f4f;--danger-soft:#f9eaea}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--text);font-size:15px}
+.wrap{max-width:1180px;margin:auto;padding:16px 16px 48px}
+.top{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
+h1{margin:0;font-size:24px}
+.muted,.hint{color:var(--muted);font-size:13px}
+.tabs{display:flex;gap:6px;margin:16px 0;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid var(--border)}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{flex:none;border:none;border-bottom:2px solid transparent;background:none;border-radius:0;
+padding:10px 14px 11px;font-weight:600;color:var(--muted);margin-bottom:-1px;cursor:pointer}
+.tabs button:hover{color:var(--text)}
+.tabs button.active{color:var(--accent-ink);border-bottom-color:var(--accent)}
+button{border:1px solid var(--border);background:#fff;border-radius:11px;padding:10px 13px;cursor:pointer;font-weight:600;color:var(--text);font-family:inherit;font-size:14px}
+button:hover{border-color:var(--faint)}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button.primary:hover{background:var(--accent-ink)}
+button.danger{color:var(--danger);border-color:var(--border)}
+button.danger:hover{background:var(--danger-soft);border-color:var(--danger)}
+button.small{padding:6px 10px;font-size:12.5px;border-radius:9px}
+button:disabled{opacity:.45;cursor:default}
+.hidden{display:none!important}
+.card{background:var(--card);border:1px solid var(--border);border-radius:15px;padding:15px}
+.card+.card{margin-top:14px}
+.title{font-weight:700;margin-bottom:5px}
+.eyebrow{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:700;margin:0 0 10px}
+.grid{display:grid;gap:14px}.two{grid-template-columns:1fr 340px}.stack{display:grid;gap:14px;align-content:start}
+.fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+label{font-size:13px;color:var(--muted);display:block}
+input,select,textarea{width:100%;min-height:42px;border:1px solid var(--border);border-radius:10px;padding:9px 10px;background:#fff;color:var(--text);font:inherit;font-size:14px}
+textarea{min-height:auto}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+input[type=checkbox]{width:auto;min-height:auto}
+.sectionbar{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap}
+.list{display:grid;gap:8px}
+.row{display:grid;grid-template-columns:1.4fr .75fr .75fr auto;gap:8px;align-items:center;padding:10px;border:1px solid var(--border);border-radius:12px;background:#fff}
+.pill{display:inline-block;border:1px solid var(--border);border-radius:999px;padding:3px 9px;font-size:12px;color:var(--muted)}
+.pill.ok{color:var(--ok);border-color:var(--ok);background:var(--ok-soft)}
+.pill.warn{color:var(--warn);border-color:var(--warn);background:var(--warn-soft)}
+.pill.bad{color:var(--danger);border-color:var(--danger);background:var(--danger-soft)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.stat{background:#fff;border:1px solid var(--border);border-radius:13px;padding:13px 15px}
+.stat .big{font-size:23px;font-weight:700;letter-spacing:-.01em}
+.stat.forte{background:var(--accent-soft);border-color:var(--accent)}
+.stat.forte .big{color:var(--accent-ink)}
+.actions{display:flex;gap:7px;flex-wrap:wrap}
+.summary{position:sticky;top:10px;height:fit-content}
+.sum{display:flex;justify-content:space-between;gap:10px;margin:7px 0;font-size:14px}
+.sum span:first-child{color:var(--muted)}
+.total{font-weight:800;font-size:21px;margin-top:10px;padding-top:10px;border-top:2px solid var(--text)}
+.total span:first-child{color:var(--text)!important}
+/* produtos: temas e kits com foto */
+.packgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:10px}
+.pack{border:1px solid var(--border);border-radius:13px;background:#fff;cursor:pointer;overflow:hidden;text-align:left;padding:0;display:flex;flex-direction:column}
+.pack.selected{outline:2px solid var(--accent);border-color:var(--accent)}
+.pack .foto{aspect-ratio:4/3;background:#efe9e6 center/cover no-repeat;display:flex;align-items:center;justify-content:center;color:var(--faint);font-size:26px}
+.pack .corpo{padding:9px 10px 11px}
+.pack .corpo b{display:block;font-size:13.5px;line-height:1.25}
+.pack .corpo .p{font-weight:700;color:var(--accent-ink);font-size:13px;margin-top:3px}
+.pack .corpo .d{font-size:11.5px;color:var(--muted);margin-top:3px;line-height:1.35}
+.pack .tagk{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);font-weight:700}
+.line{display:grid;grid-template-columns:1fr 92px;gap:9px;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)}
+.line:last-child{border-bottom:none}
+.notice{padding:10px 12px;border-radius:11px;background:#faf7f6;border:1px solid var(--border);font-size:13px}
+.notice.warn{background:var(--warn-soft);border-color:var(--warn);color:var(--warn)}
+.notice.bad{background:var(--danger-soft);border-color:var(--danger);color:var(--danger)}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}
+.order{border:1px solid var(--border);border-radius:13px;padding:13px;background:#fff}
+.order.editando{border-color:var(--accent);background:var(--accent-soft)}
+.checkgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.check{padding:9px 10px;border:1px solid var(--border);border-radius:10px;background:#fff;font-size:13px}
+.check b{font-size:12px;display:block;margin-bottom:2px}
+.buycols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:12px}
+.buycol{border:1px solid var(--border);border-radius:12px;padding:11px;background:#faf8f7}
+.buycol h3{font-size:14px;margin:0 0 6px}
+.catalog-row{display:grid;grid-template-columns:minmax(170px,1.5fr) 96px 110px 130px auto;gap:9px;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px}
+.catalog-row:last-child{border-bottom:none}
+.catgroup{font-weight:700;font-size:13px;margin:14px 0 2px;color:var(--accent-ink)}
+.docpaper{border:1px solid #bbb;padding:26px;background:white;color:#111;font-size:13.5px;line-height:1.55}
+.docpaper h2{text-align:center;margin:0 0 4px;font-size:19px}
+.docpaper h3{font-size:14px;margin:18px 0 6px;border-bottom:1px solid #ccc;padding-bottom:3px}
+.docpaper .sub{text-align:center;color:#555;font-size:12px;margin:0 0 18px}
+.doctable{width:100%;border-collapse:collapse;margin:8px 0 14px}
+.doctable th,.doctable td{border:1px solid #aaa;padding:7px 8px;text-align:left;font-size:12.5px}
+.doctable th{background:#f2efed}
+.docgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;font-size:12.5px;margin-bottom:12px}
+.docline{border-bottom:1px solid #888;min-height:30px;margin-top:10px}
+.assin{display:grid;grid-template-columns:1fr 1fr;gap:26px;margin-top:26px}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:flex-start;justify-content:center;padding:22px;overflow:auto;z-index:9999}
+.modalbox{width:min(940px,100%);background:white;border-radius:16px;padding:18px}
+.editbox{width:min(780px,100%);background:white;border-radius:16px;padding:18px}
+.editgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.editgrid .full{grid-column:1/-1}
+.fotobox{display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap}
+.fotoprev{width:130px;aspect-ratio:4/3;border-radius:10px;border:1px solid var(--border);background:#efe9e6 center/cover no-repeat;flex:none;display:flex;align-items:center;justify-content:center;color:var(--faint);font-size:22px}
+/* seletor tema / kit / do zero */
+.seg{display:inline-flex;border:1px solid var(--border);border-radius:11px;overflow:hidden;background:#fff}
+.seg button{border:none;border-radius:0;padding:9px 15px;font-size:13.5px;color:var(--muted);background:#fff}
+.seg button+button{border-left:1px solid var(--border)}
+.seg button.on{background:var(--accent-soft);color:var(--accent-ink)}
+.selbar{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-top:11px;font-size:13px}
+.kitrow{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;padding:10px 11px;border:1px solid var(--border);border-radius:11px;background:#fff}
+.kitrow.on{border-color:var(--accent);background:var(--accent-soft)}
+.kitrow b{font-size:14px}
+.kitrow .pr{font-weight:700;color:var(--accent-ink);white-space:nowrap}
+/* chips de filtro do acervo */
+.chips{display:flex;gap:7px;flex-wrap:wrap;margin:10px 0 4px}
+.chip{border:1px solid var(--border);background:#fff;border-radius:999px;padding:6px 12px;font-size:12.5px;font-weight:600;color:var(--muted)}
+.chip.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-ink)}
+.chip .n{font-weight:400;opacity:.7}
+.acvrow{display:grid;grid-template-columns:minmax(150px,1.6fr) 118px 104px 104px 110px auto;gap:9px;align-items:center;
+ padding:9px 0;border-bottom:1px solid var(--border);font-size:13px}
+.acvrow:last-child{border-bottom:none}
+.acvrow .lbl{font-size:11px;color:var(--faint)}
+.bar{height:5px;border-radius:99px;background:#eee4e0;overflow:hidden;margin-top:4px}
+.bar i{display:block;height:100%;background:var(--ok)}
+.bar.warn i{background:var(--warn)}.bar.bad i{background:var(--danger)}
+.sug{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px}
+.sug:last-child{border-bottom:none}
+@media(max-width:900px){.acvrow{grid-template-columns:1fr 1fr}.kitrow{grid-template-columns:1fr auto}}
+/* no celular cada peça vira um bloco só, com os números correndo na mesma linha */
+@media(max-width:700px){
+ .acvrow{grid-template-columns:1fr;gap:3px;padding:12px 0}
+ .acvrow>div:not(:first-child):not(:last-child){font-size:12.5px}
+ .acvrow>div:not(:first-child):not(:last-child)>div.lbl{display:inline}
+ .acvrow>div:not(:first-child):not(:last-child)>div.lbl:before{content:"\00a0· "}
+ .acvrow .bar{display:block;width:100%;margin-top:5px}
+ .acvrow .actions{justify-content:flex-end;margin-top:4px}
+}
+@media print{
+ body *{visibility:hidden!important}
+ #docModal,#docModal *{visibility:visible!important}
+ #docModal{position:absolute;inset:0;background:white;padding:0;overflow:visible}
+ #docModal .modalbox{width:100%;padding:0;border-radius:0}
+ #docModal .toolbar{display:none!important}
+ #docModal .docpaper{border:0;padding:0}
+}
+@media(max-width:900px){
+ .two{grid-template-columns:1fr}.summary{position:static}
+ .buycols{grid-template-columns:1fr}.row{grid-template-columns:1fr 1fr}
+ .catalog-row{grid-template-columns:1fr 1fr}
+}
+@media(max-width:600px){.wrap{padding:10px 10px 40px}.fields,.editgrid{grid-template-columns:1fr}.assin{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div><h1>Gestão de Eventos</h1><div class="muted" id="subtitulo">Aluguel de decoração — orçamento, pedidos, acervo e termos</div></div>
+    <span class="pill" id="pillSalvo">Salvo neste navegador</span>
+  </div>
+
+  <div class="tabs" role="tablist">
+    <button class="tab active" data-tab="res">Resumo</button>
+    <button class="tab" data-tab="orc">Orçamento</button>
+    <button class="tab" data-tab="ped">Pedidos</button>
+    <button class="tab" data-tab="acv">Acervo</button>
+    <button class="tab" data-tab="pro">Temas e kits</button>
+    <button class="tab" data-tab="cfg">Configurações</button>
+  </div>
+
+  <!-- ============ RESUMO ============ -->
+  <section data-panel="res">
+    <div class="stats">
+      <div class="stat"><div class="muted">Pedidos em aberto</div><div id="rAbertos" class="big">0</div><div class="muted" id="rAbertosSub"></div></div>
+      <div class="stat forte"><div class="muted">A receber</div><div id="rReceber" class="big">R$ 0,00</div><div class="muted">confirmados, sem contar orçamento enviado</div></div>
+      <div class="stat"><div class="muted">Peças no acervo</div><div id="rPecas" class="big">0</div><div class="muted" id="rPecasSub"></div></div>
+      <div class="stat"><div class="muted">Falta comprar ou repor</div><div id="rComprar" class="big">0</div><div class="muted" id="rComprarSub"></div></div>
+    </div>
+
+    <div class="card" style="margin-top:14px">
+      <div class="title">Próximos</div>
+      <div id="rProximos" class="list" style="margin-top:8px"></div>
+    </div>
+
+    <div class="card">
+      <div class="title">O que precisa da sua atenção</div>
+      <div id="rAlertas" class="list" style="margin-top:8px"></div>
+    </div>
+  </section>
+
+  <!-- ============ ORÇAMENTO ============ -->
+  <section data-panel="orc" class="hidden">
+    <div id="editandoAviso" class="notice warn hidden" style="margin-bottom:14px">
+      Você está <b>editando um pedido salvo</b>. As alterações substituem o pedido original quando você salvar.
+      <button id="cancelarEdicao" class="small" style="margin-left:8px">Cancelar edição</button>
+    </div>
+
+    <div class="grid two">
+      <div class="stack">
+        <div class="card">
+          <div class="title">Dados do evento</div>
+          <div class="fields" style="margin-top:8px">
+            <label>Cliente<input id="client" placeholder="Nome de quem contrata"></label>
+            <label>WhatsApp<input id="phone" placeholder="(31) 9...."></label>
+            <label>CPF ou CNPJ<input id="doc"></label>
+            <label>Tipo<select id="type"><option>Social</option><option>Corporativo</option></select></label>
+            <label>Retirada — data<input id="pickupDate" type="date"></label>
+            <label>Retirada — hora<input id="pickupTime" type="time" value="09:00"></label>
+            <label>Devolução — data<input id="returnDate" type="date"></label>
+            <label>Devolução — hora<input id="returnTime" type="time" value="18:00"></label>
+            <label class="full" style="grid-column:1/-1">Local do evento<input id="loc"></label>
+          </div>
+          <p class="hint" id="periodoHint" style="margin-top:8px"></p>
+        </div>
+
+        <div class="card">
+          <div class="sectionbar">
+            <div>
+              <div class="title">Escolha o tema ou o kit</div>
+              <div class="hint">Depois dá para tirar e acrescentar peça.</div>
+            </div>
+            <div class="actions"><button id="irProdutos" class="small">Editar produtos</button></div>
+          </div>
+
+          <div class="selbar">
+            <div class="seg" id="segPack">
+              <button data-psel="tema" class="on">Temas</button>
+              <button data-psel="kit">Kits</button>
+              <button data-psel="zero">Montar do zero</button>
+            </div>
+            <span class="pill" id="pillEscolhido">Nada escolhido</span>
+          </div>
+
+          <!-- temas: com foto e busca -->
+          <div id="viewTema">
+            <input id="buscaTema" placeholder="Buscar tema pelo nome ou pelas cores" style="margin:12px 0 0">
+            <div id="chipsTema" class="chips"></div>
+            <div id="packBtns" class="packgrid" style="margin-top:6px"></div>
+          </div>
+
+          <!-- kits: lista simples, sem foto -->
+          <div id="viewKit" class="hidden">
+            <input id="buscaKit" placeholder="Buscar kit" style="margin:12px 0 0">
+            <div id="chipsKit" class="chips"></div>
+            <div id="kitList" class="list" style="margin-top:6px"></div>
+          </div>
+
+          <!-- do zero -->
+          <div id="viewZero" class="hidden">
+            <div class="notice" style="margin-top:12px">Sem pacote: o orçamento sai só das peças que você somar
+              em <b>Acrescentar peça do acervo</b>, aqui embaixo.</div>
+          </div>
+        </div>
+
+        <div class="card" id="itensBox">
+          <div class="title" id="itensTitulo">Itens inclusos</div>
+          <div class="hint">A disponibilidade considera todo o período entre retirada e devolução, com a folga configurada.</div>
+          <div id="packItems" style="margin-top:8px"></div>
+        </div>
+
+        <div class="card">
+          <div class="title">Acrescentar peça do acervo</div>
+          <div class="hint">Some qualquer peça além do que já vem no tema ou no kit.</div>
+          <input id="buscaExtra" placeholder="Buscar peça" style="margin-top:9px">
+          <div id="extras" style="margin-top:6px"></div>
+        </div>
+
+        <div class="card">
+          <div class="sectionbar">
+            <div>
+              <div class="title">Trabalho extra (personalizados)</div>
+              <div class="hint">Impresso, montagem, arte feita para este evento. Não volta para o acervo e não entra na caução.</div>
+            </div>
+            <button id="addPersonalized" class="small">+ Adicionar</button>
+          </div>
+          <div id="personalizedList" class="list" style="margin-top:10px"></div>
+          <div class="sum" style="margin-top:8px"><span><b>Total do trabalho extra</b></span><span id="personalizedTotal">R$ 0,00</span></div>
+        </div>
+
+        <div class="card">
+          <div class="title">Entrega e retirada</div>
+          <div class="fields" style="margin-top:8px">
+            <label>Tipo<select id="logType"><option>Sem entrega — o cliente busca</option><option>Só entrega</option><option>Só recolhimento</option><option>Entrega e recolhimento</option></select></label>
+            <label>Valor<input id="logValue" type="number" min="0" step="0.01" value="0"></label>
+          </div>
+          <label style="margin-top:9px">Observações<textarea id="logNotes" rows="2" placeholder="Escada, estacionamento, acesso difícil, horário de carga..."></textarea></label>
+        </div>
+      </div>
+
+      <aside class="card summary">
+        <div class="muted">Resumo</div>
+        <div id="sumTitle" class="title">Novo orçamento</div>
+        <div id="sumMeta" class="muted"></div>
+        <hr style="border:0;border-top:1px solid var(--border);margin:12px 0">
+        <div class="sum"><span id="baseLabel">Tema ou kit</span><span id="base">R$ 0,00</span></div>
+        <div class="sum" id="linhaDesc"><span>Peças retiradas</span><span id="disc">R$ 0,00</span></div>
+        <div class="sum" id="linhaExt"><span>Peças acrescentadas</span><span id="ext">R$ 0,00</span></div>
+        <div class="sum" id="linhaPers"><span>Trabalho extra</span><span id="persTotalSum">R$ 0,00</span></div>
+        <div class="sum" id="linhaLog"><span>Entrega</span><span id="logTotal">R$ 0,00</span></div>
+        <div class="sum total"><span>Total</span><span id="total">R$ 0,00</span></div>
+        <div class="sum" id="linhaCaucao"><span>Caução sugerida</span><span id="caucaoSug">R$ 0,00</span></div>
+        <div class="hint" id="caucaoHint"></div>
+
+        <div id="avisoDisp" class="notice bad hidden" style="margin-top:12px"></div>
+
+        <button id="saveOrder" class="primary" style="width:100%;margin-top:12px">Salvar pedido</button>
+        <button id="novoOrcamento" style="width:100%;margin-top:8px">Limpar e começar outro</button>
+
+        <div style="margin-top:16px"><div class="title">Mensagem do orçamento</div>
+          <textarea id="whatsText" rows="13" readonly></textarea>
+          <div class="toolbar"><button id="copyBudget" class="small">Copiar orçamento</button></div></div>
+        <div style="margin-top:14px"><div class="title">Mensagem da confirmação</div>
+          <textarea id="confirmText" rows="11" readonly></textarea>
+          <div class="toolbar"><button id="copyConfirm" class="small">Copiar confirmação</button></div></div>
+        <div style="margin-top:14px">
+          <div class="title">Documentos</div>
+          <div class="hint">Pré-visualiza com os dados deste orçamento.</div>
+          <div class="toolbar">
+            <button id="previewWithdraw" class="small">Termo de retirada</button>
+            <button id="previewReturn" class="small">Termo de devolução</button>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ============ PEDIDOS ============ -->
+  <section data-panel="ped" class="hidden">
+    <div class="stats">
+      <div class="stat"><div class="muted">Em aberto</div><div id="openCount" class="big">0</div></div>
+      <div class="stat"><div class="muted">Confirmados</div><div id="confCount" class="big">0</div></div>
+      <div class="stat forte"><div class="muted">A receber</div><div id="receive" class="big">R$ 0,00</div></div>
+      <div class="stat"><div class="muted">Caução em mãos</div><div id="depTotal" class="big">R$ 0,00</div></div>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <div class="sectionbar">
+        <div><div class="title">Pedidos</div><div class="hint">Do orçamento enviado até a devolução conferida.</div></div>
+        <select id="filtroPedidos" style="max-width:220px">
+          <option value="ativos">Só os ativos</option>
+          <option value="todos">Todos</option>
+        </select>
+      </div>
+      <div id="orders" class="list" style="margin-top:12px"></div>
+    </div>
+  </section>
+
+  <!-- ============ ACERVO ============ -->
+  <section data-panel="acv" class="hidden">
+    <div class="stats">
+      <div class="stat forte"><div class="muted">Falta comprar</div><div id="acvFalta" class="big">R$ 0,00</div><div class="muted" id="acvFaltaSub">já na lista de compra</div></div>
+      <div class="stat"><div class="muted">A conta sugere</div><div id="acvSug" class="big">0</div><div class="muted" id="acvSugSub">peças, somando a folga</div></div>
+      <div class="stat"><div class="muted">Investido no acervo</div><div id="acvInvest" class="big">R$ 0,00</div><div class="muted" id="acvInvestSub"></div></div>
+      <div class="stat"><div class="muted">Passaram da vida útil</div><div id="acvGasto" class="big">0</div><div class="muted">já rodaram demais</div></div>
+    </div>
+
+    <div class="card" style="margin-top:14px">
+      <div class="sectionbar">
+        <div><div class="title">O que falta comprar</div>
+          <div class="hint">Comprou na loja e já trouxe? <b>Já tenho</b> — vai direto para o acervo.
+            Pediu pela internet? <b>Vai chegar</b>, e você marca <b>Chegou</b> quando bater na porta.
+            Reposição fica ligada à peça que quebrou.</div></div>
+        <button id="addInv" class="small">+ Novo item</button>
+      </div>
+
+      <div class="notice" id="sugBox" style="margin-top:12px">
+        <div class="sectionbar">
+          <div><b>O que a conta está pedindo</b>
+            <div class="hint" style="margin-top:2px">Maior quantidade que um tema ou kit usa de uma vez, mais a folga do risco de quebra,
+              mais o que já passou da vida útil. Menos o que você tem.</div></div>
+          <button id="sugTodas" class="small">Jogar tudo em "Quero comprar"</button>
+        </div>
+        <div id="sugList" style="margin-top:9px"></div>
+      </div>
+
+      <div class="buycols">
+        <div class="buycol"><h3>Quero comprar</h3><div class="hint" style="margin-bottom:8px">Pesquisa, fornecedor, link e valor pretendido.</div><div id="buyList" class="list"></div></div>
+        <div class="buycol"><h3>Aguardando entrega</h3><div class="hint" style="margin-bottom:8px">Já pedi, ainda não chegou.</div><div id="orderedList" class="list"></div></div>
+        <div class="buycol"><h3>Repor peça</h3><div class="hint" style="margin-bottom:8px">Quebrou ou sumiu. Entra sozinho quando você registra a devolução.</div><div id="replaceList" class="list"></div></div>
+      </div>
+      <details style="margin-top:14px;border:1px solid var(--border);border-radius:12px;background:#fff;padding:11px">
+        <summary style="cursor:pointer;font-weight:700">Já entrou no acervo — histórico de compras</summary>
+        <div id="archiveList" class="list" style="margin-top:10px"></div>
+      </details>
+    </div>
+
+    <div class="card">
+      <div class="sectionbar">
+        <div><div class="title">O que temos</div>
+          <div class="hint">Quantidade oficial do que dá para alugar. Clique no grupo para filtrar.</div></div>
+        <button id="addCatalog" class="small">+ Nova peça</button>
+      </div>
+      <input id="catalogSearch" placeholder="Buscar peça, grupo ou subgrupo" style="margin:11px 0 0">
+      <div id="catalogChips" class="chips"></div>
+      <label style="display:flex;gap:7px;align-items:center;margin:4px 0 10px;font-size:13px">
+        <input type="checkbox" id="acvSoFalta"> Mostrar só o que está faltando ou gasto
+      </label>
+      <div id="catalogGroups"></div>
+    </div>
+
+    <div class="card">
+      <div class="title">Quanto cobrar por uma peça</div>
+      <div class="hint">Use antes de comprar, ou para revisar um preço que já pratica.</div>
+      <div class="fields" style="margin-top:10px">
+        <label>Preço de compra<input id="calcPurchase" type="number" min="0" step="0.01" value="0"></label>
+        <label>Frete e custo extra<input id="calcFreight" type="number" min="0" step="0.01" value="0"></label>
+        <label>Quantidade comprada<input id="calcQty" type="number" min="1" value="1"></label>
+        <label>Vida útil — quantas locações<input id="calcLife" type="number" min="1" value="20"></label>
+        <label>Manutenção por uso<input id="calcMaint" type="number" min="0" step="0.01" value="0"></label>
+        <label>Margem desejada (%)<input id="calcMargin" type="number" min="0" step="5" value="100"></label>
+      </div>
+      <div class="stats" style="margin-top:12px">
+        <div class="stat"><div class="muted">Custo unitário</div><div class="big" id="calcUnit">R$ 0,00</div></div>
+        <div class="stat"><div class="muted">Custo por uso</div><div class="big" id="calcUse">R$ 0,00</div></div>
+        <div class="stat forte"><div class="muted">Aluguel sugerido</div><div class="big" id="calcSuggested">R$ 0,00</div></div>
+        <div class="stat"><div class="muted">Se paga em</div><div class="big" id="calcPayback">—</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TEMAS E KITS ============ -->
+  <section data-panel="pro" class="hidden">
+    <div class="card">
+      <div class="sectionbar">
+        <div>
+          <div class="title">Temas e kits</div>
+          <div class="hint">Os dois vivem juntos porque na hora de vender são a mesma coisa: um pacote pronto com preço.
+            <b>Tema</b> tem cara e foto — safari, chá revelação. <b>Kit</b> é neutro — mesa simples, corporativo essencial.</div>
+        </div>
+        <div class="actions">
+          <button id="addTema" class="small">+ Tema</button>
+          <button id="addKit" class="small">+ Kit</button>
+        </div>
+      </div>
+      <div class="toolbar" style="margin-top:10px">
+        <input id="buscaPack" placeholder="Buscar" style="max-width:280px">
+        <select id="filtroTipoPack" style="max-width:150px">
+          <option value="">Tema e kit</option><option value="tema">Só temas</option><option value="kit">Só kits</option></select>
+        <span class="pill" id="pillFotos"></span>
+      </div>
+      <div id="chipsPack" class="chips"></div>
+      <div id="packList" class="list" style="margin-top:12px"></div>
+    </div>
+  </section>
+
+  <!-- ============ CONFIGURAÇÕES ============ -->
+  <section data-panel="cfg" class="hidden">
+    <div class="card">
+      <div class="title">Quem assina</div>
+      <div class="hint">Aparece no cabeçalho dos termos que a cliente recebe.</div>
+      <div class="fields" style="margin-top:9px">
+        <label>Nome do negócio<input id="cfgEmpresa" placeholder="Ex.: Pegue e Monte Decorações"></label>
+        <label>CNPJ ou CPF<input id="cfgDocEmpresa"></label>
+        <label>Responsável<input id="cfgResp"></label>
+        <label>WhatsApp de contato<input id="cfgContato"></label>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="title">Regras do aluguel</div>
+      <div class="hint">Configure uma vez. Vale como padrão para orçamento, confirmação e termos.</div>
+      <div class="fields" style="margin-top:9px">
+        <label>Sinal para reservar (%)<input id="cfgSignal" type="number" min="0" max="100"></label>
+        <label>Caução — % do valor de reposição<input id="cfgDepositPct" type="number" min="0" max="100" step="5"></label>
+        <label>Caução mínima (R$)<input id="cfgDeposit" type="number" min="0" step="10"></label>
+        <label>Multa por dia de atraso (R$)<input id="cfgLateFee" type="number" min="0" step="10"></label>
+        <label>Validade do orçamento (dias)<input id="cfgValidade" type="number" min="1" step="1"></label>
+        <label>Folga entre locações (horas)<input id="cfgFolga" type="number" min="0" step="1"></label>
+        <label class="full" style="grid-column:1/-1">Chave Pix<input id="cfgPix"></label>
+      </div>
+      <p class="hint" id="cfgCaucaoHint" style="margin-top:8px"></p>
+      <label style="margin-top:10px">O que o cliente precisa apresentar na retirada<textarea id="cfgDocs" rows="2"></textarea></label>
+      <label style="margin-top:9px">Formas de pagamento<textarea id="cfgPagto" rows="2"></textarea></label>
+    </div>
+
+    <div class="card">
+      <div class="title">Texto do termo</div>
+      <div class="hint">Estas condições entram no termo de retirada, abaixo da lista de peças.</div>
+      <label style="margin-top:9px">Condições<textarea id="cfgRules" rows="10"></textarea></label>
+      <div class="toolbar">
+        <button id="restaurarTexto" class="small">Restaurar o texto sugerido</button>
+      </div>
+    </div>
+
+    <button id="saveCfg" class="primary">Salvar configurações</button>
+
+    <div class="card" style="margin-top:18px">
+      <div class="title">Backup</div>
+      <div class="hint">Tudo fica neste navegador. Baixe uma cópia de vez em quando, e use para levar os dados para outro computador.</div>
+      <div class="toolbar">
+        <button id="baixarSistema" class="primary small">Baixar o sistema como está</button>
+        <button id="exportar" class="small">Baixar só os dados</button>
+        <button id="importarBtn" class="small">Restaurar de um arquivo</button>
+        <input type="file" id="importar" accept="application/json" class="hidden">
+      </div>
+      <p class="hint" style="margin-top:9px"><b>Baixar o sistema</b> gera um arquivo HTML único com o programa
+        e os seus dados dentro. É esse arquivo que você sobe no Netlify, guarda de backup e manda para mim quando
+        quiser mudar alguma coisa — assim eu vejo exatamente a versão que você está usando.</p>
+      <p class="hint" id="usoHint" style="margin-top:9px"></p>
+    </div>
+  </section>
+
+  <!-- ============ MODAIS ============ -->
+  <div id="catalogEditModal" class="modal hidden">
+    <div class="editbox">
+      <div class="sectionbar">
+        <div><div class="title">Peça do acervo</div><div class="hint">O preço sugerido sai do custo, da vida útil e da margem.</div></div>
+        <button id="closeCatalogEdit" class="small">Fechar</button>
+      </div>
+      <div class="editgrid" style="margin-top:12px">
+        <label>Grupo<input id="editCatalogGroup"></label>
+        <label>Subgrupo<input id="editCatalogSubgroup"></label>
+        <label class="full">Nome da peça<input id="editCatalogName"></label>
+        <label>Quantidade no acervo<input id="editCatalogQty" type="number" min="0"></label>
+        <label>Custo de compra<input id="editCatalogCost" type="number" min="0" step="0.01"></label>
+        <label>Vida útil — locações<input id="editCatalogLife" type="number" min="1"></label>
+        <label>Manutenção por uso<input id="editCatalogMaint" type="number" min="0" step="0.01"></label>
+        <label>Margem desejada (%)<input id="editCatalogMargin" type="number" min="0" step="5"></label>
+        <label>Preço de aluguel praticado<input id="editCatalogPrice" type="number" min="0" step="0.01"></label>
+        <label>Valor de reposição<input id="editCatalogReplacement" type="number" min="0" step="0.01"></label>
+      </div>
+
+      <div class="title" style="margin-top:16px">Quebra e desgaste</div>
+      <div class="hint">O risco define quantas peças a mais você deveria ter para não ficar na mão. O contador de uso diz quando a peça já deu o que tinha que dar.</div>
+      <div class="editgrid" style="margin-top:10px">
+        <label>Prioridade de compra<select id="editCatalogPrioridade">
+          <option>Alta</option><option>Média</option><option>Baixa</option></select></label>
+        <label>Risco de quebra<select id="editCatalogRisco">
+          <option value="baixo">Baixo — aguenta bem (folga 0%)</option>
+          <option value="medio">Médio — desgasta (folga 15%)</option>
+          <option value="alto">Alto — quebra fácil (folga 30%)</option></select></label>
+        <label>Folga na mão — deixe vazio para automática<input id="editCatalogFolga" type="number" min="0" step="1" placeholder="automática"></label>
+        <label>Já rodou — quantas locações<input id="editCatalogUsos" type="number" min="0" step="1"></label>
+        <label>Quanto sai de uma vez<input id="editCatalogDemanda" readonly></label>
+      </div>
+      <div class="notice" id="editCatalogEstoque" style="margin-top:10px"></div>
+
+      <div class="notice" id="editCatalogAviso" style="margin-top:10px"></div>
+      <div class="toolbar" style="justify-content:flex-end">
+        <button id="delCatalogEdit" class="danger">Excluir peça</button>
+        <button id="saveCatalogEdit" class="primary">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="packEditModal" class="modal hidden">
+    <div class="editbox">
+      <div class="sectionbar">
+        <div><div class="title" id="packEditTitulo">Produto</div><div class="hint">Foto, descrição, peças que vão junto e preço.</div></div>
+        <button id="closePackEdit" class="small">Fechar</button>
+      </div>
+      <div class="fotobox" style="margin-top:12px">
+        <div class="fotoprev" id="packFotoPrev">＋</div>
+        <div style="flex:1;min-width:200px">
+          <label>Foto<input type="file" id="packFotoInput" accept="image/*"></label>
+          <p class="hint" style="margin-top:6px">A imagem é reduzida automaticamente antes de guardar. Uma foto boa da montagem pronta vende sozinha.</p>
+          <div class="toolbar"><button id="packFotoRemover" class="small">Tirar foto</button></div>
+        </div>
+      </div>
+      <div class="editgrid" style="margin-top:12px">
+        <label class="full">Nome<input id="packNome" placeholder="Ex.: Safari, Chá Revelação, Mesa Simples"></label>
+        <label>Tipo<select id="packTipo"><option value="tema">Tema — tem cara própria</option><option value="kit">Kit — neutro</option></select></label>
+        <label>Serve para<select id="packPara"><option>Ambos</option><option>Social</option><option>Corporativo</option></select></label>
+        <label>Categoria<input id="packCategoria" list="categoriasConhecidas" placeholder="Infantil, Bebê / Chá, 15 anos..."></label>
+        <datalist id="categoriasConhecidas"></datalist>
+        <label class="full">Descrição para a cliente<input id="packDesc" placeholder="Ex.: verde, bege e palha, com arranjos e bichinhos"></label>
+        <label>Preço do pacote<input id="packPreco" type="number" min="0" step="10"></label>
+        <label>Soma das peças<input id="packSoma" readonly></label>
+      </div>
+      <div class="notice" id="packAviso" style="margin-top:10px"></div>
+      <div class="title" style="margin-top:14px">Peças que vão junto</div>
+      <input id="packBusca" placeholder="Buscar peça" style="margin:8px 0">
+      <div id="packItensEdit" style="max-height:280px;overflow:auto"></div>
+      <div class="toolbar" style="justify-content:flex-end;margin-top:14px">
+        <button id="delPackEdit" class="danger">Excluir</button>
+        <button id="savePackEdit" class="primary">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="purchaseEditModal" class="modal hidden">
+    <div class="editbox">
+      <div class="sectionbar">
+        <div><div class="title">Item de compra</div></div>
+        <button id="closePurchaseEdit" class="small">Fechar</button>
+      </div>
+      <div class="editgrid" style="margin-top:12px">
+        <label class="full">Item<input id="editPurchaseName"></label>
+        <label>Quantidade<input id="editPurchaseQty" type="number" min="1"></label>
+        <label>Preço de compra unitário<input id="editPurchaseCost" type="number" min="0" step="0.01"></label>
+        <label>Aluguel pretendido<input id="editPurchaseSale" type="number" min="0" step="0.01"></label>
+        <label>Fornecedor<input id="editPurchaseSupplier"></label>
+        <label>Situação<select id="editPurchaseStatus">
+          <option>Quero comprar</option><option>Aguardando entrega</option><option>Repor peça</option><option>Já entrou no acervo</option></select></label>
+        <label>Prioridade<select id="editPurchasePrioridade">
+          <option>Alta</option><option>Média</option><option>Baixa</option></select></label>
+        <label>Ligar a uma peça do acervo<select id="editPurchaseLinked"><option value="">Peça nova</option></select></label>
+        <label class="full">Link do produto<input id="editPurchaseLink"></label>
+      </div>
+
+      <div id="purchaseNovaBox">
+        <div class="title" style="margin-top:16px">Onde ela entra no acervo</div>
+        <div class="hint">Preencha agora e a peça já nasce no lugar certo. Sem isso ela cai num grupo solto e você não acha depois.</div>
+        <div class="editgrid" style="margin-top:10px">
+          <label>Grupo<input id="editPurchaseGroup" list="gruposConhecidos" placeholder="Decoração, Estrutura, Som..."></label>
+          <label>Subgrupo<input id="editPurchaseSubgroup" placeholder="Vasos, Painel, Tecidos..."></label>
+          <label>Risco de quebra<select id="editPurchaseRisco">
+            <option value="baixo">Baixo — aguenta bem</option>
+            <option value="medio">Médio — desgasta</option>
+            <option value="alto">Alto — quebra fácil</option></select></label>
+          <label>Vida útil — locações<input id="editPurchaseLife" type="number" min="1" placeholder="20"></label>
+        </div>
+        <datalist id="gruposConhecidos"></datalist>
+      </div>
+      <div class="toolbar" style="justify-content:flex-end;margin-top:14px">
+        <button id="delPurchaseEdit" class="danger">Excluir</button>
+        <button id="savePurchaseEdit" class="primary">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="docModal" class="modal hidden">
+    <div class="modalbox">
+      <div class="toolbar" style="justify-content:flex-end;margin:0 0 10px">
+        <button id="printDoc" class="primary">Imprimir ou salvar em PDF</button>
+        <button id="closeDoc">Fechar</button>
+      </div>
+      <div id="docContent" class="docpaper"></div>
+    </div>
+  </div>
+
+  <div id="toast" class="muted" style="margin-top:14px"></div>
+</div>
+
+<script>
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const money=n=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(n)||0);
+const money0=n=>'R$ '+Math.round(Number(n)||0).toLocaleString('pt-BR');
+const uid=()=>Math.random().toString(36).slice(2,9);
+const KEY='gestao_eventos_v22';
+const CHAVES_ANTIGAS=['gestao_eventos_v21','gestao_eventos_v20','gestao_eventos_v19','gestao_eventos_v18'];
+const VERSAO='v22'; const CONSTRUIDO='2026-09-29';
+/* risco de quebra → folga de estoque sugerida */
+const FOLGA_RISCO={baixo:0,medio:.15,alto:.30};
+const PRIORIDADES=['Alta','Média','Baixa'];
+const ordemPrio=p=>{const i=PRIORIDADES.indexOf(p); return i<0?1:i};
+const NOME_RISCO={baixo:'Baixo',medio:'Médio',alto:'Alto'};
+function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+function toast(t){$('#toast').textContent=t;clearTimeout(window.__t);window.__t=setTimeout(()=>$('#toast').textContent='',4000)}
+
+const REGRAS_PADRAO=`1. A reserva da data só está garantida após o pagamento do sinal. Antes disso, as peças continuam disponíveis para outros clientes.
+2. O saldo restante é pago até o momento da retirada ou da entrega.
+3. A caução é devolvida integralmente quando todas as peças voltarem no prazo e em boas condições. Havendo dano, quebra ou perda, será descontado o valor de reposição da peça.
+4. As peças devem voltar limpas e secas, embaladas da mesma forma que saíram.
+5. Atraso na devolução gera multa por dia, conforme informado neste termo.
+6. Peças personalizadas feitas para o evento ficam com o cliente e não fazem parte da caução.
+7. Cancelamento pelo cliente: o sinal não é devolvido, porque a data ficou bloqueada para outros pedidos.`;
+
+const seedCatalog=[
+ {group:'Estrutura',subgroup:'Painel',name:'Painel retangular desmontável',price:60,replacement:180,purchaseCost:120,qty:1,risco:'baixo'},
+ {group:'Estrutura',subgroup:'Painel',name:'Painel redondo desmontável',price:50,replacement:160,purchaseCost:100,qty:1,risco:'baixo'},
+ {group:'Estrutura',subgroup:'Mesa',name:'Mesa / cavalete dobrável',price:60,replacement:180,purchaseCost:120,qty:1,risco:'baixo'},
+ {group:'Estrutura',subgroup:'Cilindros',name:'Cilindros encaixáveis',price:45,replacement:130,purchaseCost:90,qty:2,risco:'baixo'},
+ {group:'Decoração',subgroup:'Boleiras',name:'Boleiras neutras',price:10,replacement:40,purchaseCost:25,qty:3,risco:'alto'},
+ {group:'Decoração',subgroup:'Bandejas',name:'Bandejas e suportes',price:10,replacement:30,purchaseCost:18,qty:8,risco:'medio'},
+ {group:'Decoração',subgroup:'Vasos',name:'Vasos e cachepôs',price:10,replacement:40,purchaseCost:25,qty:4,risco:'alto'},
+ {group:'Decoração',subgroup:'Flores',name:'Arranjos e flores',price:25,replacement:90,purchaseCost:60,qty:3,risco:'medio'},
+ {group:'Decoração',subgroup:'Tecidos',name:'Capas e tecidos',price:30,replacement:120,purchaseCost:80,qty:4,risco:'medio'},
+ {group:'Som',subgroup:'Caixa',name:'Caixa de som ativa',price:180,replacement:1200,purchaseCost:0,qty:1,risco:'medio'},
+ {group:'Som',subgroup:'Microfone',name:'Microfone sem fio',price:80,replacement:450,purchaseCost:0,qty:1,risco:'medio'}
+];
+
+function novoEstado(){
+  const catalog=seedCatalog.map(c=>({id:uid(),lifeUses:20,maintenancePerUse:0,marginPct:100,
+    risco:'baixo',folgaManual:null,usos:0,...c}));
+  const byName=n=>catalog.find(c=>c.name===n)?.id;
+  return {
+    settings:{empresa:'',docEmpresa:'',resp:'',contato:'',
+      signalPercent:50,depositPct:30,deposit:0,lateFee:50,validade:10,folga:12,pix:'',
+      docs:'Documento com foto e comprovante de endereço, apresentados na retirada.',
+      pagto:'Pix, dinheiro ou cartão de crédito.',
+      rules:REGRAS_PADRAO},
+    catalog,
+    packs:[
+      {id:uid(),kind:'kit',name:'Mesa simples',para:'Social',foto:'',desc:'Mesa de bolo e doces para aniversário pequeno',
+       price:210,items:[{catalogId:byName('Painel redondo desmontável'),qty:1},{catalogId:byName('Mesa / cavalete dobrável'),qty:1},
+       {catalogId:byName('Boleiras neutras'),qty:3},{catalogId:byName('Bandejas e suportes'),qty:4},{catalogId:byName('Capas e tecidos'),qty:1}]},
+      {id:uid(),kind:'kit',name:'Mesa completa',para:'Social',foto:'',desc:'Painel grande, cilindros e flores',
+       price:450,items:[{catalogId:byName('Painel retangular desmontável'),qty:1},{catalogId:byName('Mesa / cavalete dobrável'),qty:1},
+       {catalogId:byName('Cilindros encaixáveis'),qty:2},{catalogId:byName('Boleiras neutras'),qty:3},{catalogId:byName('Bandejas e suportes'),qty:8},
+       {catalogId:byName('Vasos e cachepôs'),qty:4},{catalogId:byName('Arranjos e flores'),qty:3},{catalogId:byName('Capas e tecidos'),qty:1}]},
+      {id:uid(),kind:'tema',name:'Safari',para:'Social',foto:'',desc:'Verde, bege e palha, com arranjos e bichinhos',
+       price:480,items:[{catalogId:byName('Painel retangular desmontável'),qty:1},{catalogId:byName('Mesa / cavalete dobrável'),qty:1},
+       {catalogId:byName('Cilindros encaixáveis'),qty:2},{catalogId:byName('Boleiras neutras'),qty:3},{catalogId:byName('Bandejas e suportes'),qty:4},
+       {catalogId:byName('Arranjos e flores'),qty:3},{catalogId:byName('Capas e tecidos'),qty:1}]},
+      {id:uid(),kind:'tema',name:'Chá revelação',para:'Social',foto:'',desc:'Azul e rosa, painel neutro e flores',
+       price:420,items:[{catalogId:byName('Painel redondo desmontável'),qty:1},{catalogId:byName('Mesa / cavalete dobrável'),qty:1},
+       {catalogId:byName('Boleiras neutras'),qty:3},{catalogId:byName('Bandejas e suportes'),qty:6},{catalogId:byName('Arranjos e flores'),qty:2},
+       {catalogId:byName('Capas e tecidos'),qty:1}]},
+      {id:uid(),kind:'kit',name:'Corporativo essencial',para:'Corporativo',foto:'',desc:'Painel, mesa, som e microfone',
+       price:520,items:[{catalogId:byName('Painel retangular desmontável'),qty:1},{catalogId:byName('Mesa / cavalete dobrável'),qty:1},
+       {catalogId:byName('Caixa de som ativa'),qty:1},{catalogId:byName('Microfone sem fio'),qty:1}]}
+    ],
+    purchases:[],
+    orders:[]
+  };
+}
+
+/* ---------- carga e migração do que ela já tinha ---------- */
+let state=null;
+try{ state=JSON.parse(localStorage.getItem(KEY)||'null'); }catch(e){ state=null; }
+/* arquivo baixado com dados dentro: se o navegador está vazio, começa por eles */
+if(!state){
+  const semente=document.getElementById('dados-embutidos');
+  if(semente){
+    try{ const o=JSON.parse(semente.textContent||'null'); if(o&&o.catalog) state=o; }catch(e){}
+  }
+}
+/* versão anterior neste mesmo navegador: passa direto, só ganha os campos novos */
+if(!state){
+  for(const k of CHAVES_ANTIGAS){
+    try{ const o=JSON.parse(localStorage.getItem(k)||'null'); if(o&&o.catalog){ state=o; break; } }catch(e){}
+  }
+}
+if(!state){
+  let antigo=null;
+  try{ antigo=JSON.parse(localStorage.getItem('gestao_eventos_v17')||'null'); }catch(e){}
+  if(antigo && antigo.catalog){
+    state=novoEstado();
+    state.settings=Object.assign(state.settings,antigo.settings||{});
+    if(!state.settings.rules) state.settings.rules=REGRAS_PADRAO;
+    state.catalog=(antigo.catalog||[]).map(c=>Object.assign({lifeUses:20,maintenancePerUse:0,marginPct:100,purchaseCost:0},c));
+    state.purchases=(antigo.inventory||[]).map(p=>({...p}));
+    state.orders=antigo.orders||[];
+    const packs=[];
+    ['Social','Corporativo'].forEach(aud=>{
+      ((antigo.kits||{})[aud]||[]).forEach(k=>packs.push({id:k.id||uid(),kind:'kit',name:k.name,para:aud,foto:'',desc:'',
+        price:k.price||0,items:(k.items||[]).map(i=>({catalogId:i.catalogId,qty:i.qty}))}));
+    });
+    (antigo.themes||[]).forEach(t=>packs.push({id:t.id||uid(),kind:'tema',name:t.name,para:'Ambos',foto:'',
+      desc:t.notes||'',price:0,items:[]}));
+    if(packs.length) state.packs=packs;
+    toast('Dados da versão anterior importados.');
+  } else state=novoEstado();
+}
+/* completa os campos que faltam — vale tanto para o que já está no navegador
+   quanto para um arquivo restaurado de uma versão antiga */
+function normalizar(){
+  state.settings=Object.assign(novoEstado().settings,state.settings||{});
+  state.catalog=state.catalog||[];state.packs=state.packs||[];state.purchases=state.purchases||[];state.orders=state.orders||[];
+  state.catalog.forEach(c=>{if(c.lifeUses==null)c.lifeUses=20;if(c.maintenancePerUse==null)c.maintenancePerUse=0;
+    if(c.marginPct==null)c.marginPct=100;if(c.purchaseCost==null)c.purchaseCost=c.replacement||0;
+    if(c.risco==null)c.risco='baixo';if(c.folgaManual===undefined)c.folgaManual=null;if(c.usos==null)c.usos=0});
+  state.orders.forEach(o=>{if(o.usosContados==null)o.usosContados=(o.status==='Finalizado')});
+  /* "Arquivado" virou "Já entrou no acervo" — o nome antigo confundia */
+  state.purchases.forEach(p=>{
+    if(p.status==='Arquivado')p.status='Já entrou no acervo';
+    if(p.risco==null)p.risco='baixo'; if(p.lifeUses==null)p.lifeUses=20;
+    if(p.cat==='Novo grupo > Novo subgrupo')p.cat='';
+    if(p.prioridade==null)p.prioridade='Média';
+  });
+  state.packs.forEach(p=>{if(p.categoria==null)p.categoria=''});
+  state.catalog.forEach(c=>{if(c.prioridade==null)c.prioridade='Média'});
+}
+normalizar();
+
+function save(){
+  try{ localStorage.setItem(KEY,JSON.stringify(state)); }
+  catch(e){ toast('Não consegui salvar: memória do navegador cheia. Tire alguma foto dos temas.'); }
+}
+const itemById=id=>state.catalog.find(x=>x.id===id);
+const packById=id=>state.packs.find(x=>x.id===id);
+
+/* ---------- preço ---------- */
+function costPerUse(it){const life=Math.max(1,Number(it.lifeUses)||1);
+  return (Number(it.purchaseCost)||0)/life+(Number(it.maintenancePerUse)||0)}
+function suggestedPrice(it){return costPerUse(it)*(1+(Number(it.marginPct)||0)/100)}
+function abaixoDoCusto(it){const c=costPerUse(it);return c>0&&(Number(it.price)||0)<c}
+function somaPack(p){return (p.items||[]).reduce((s,r)=>{const it=itemById(r.catalogId);return s+(it?(Number(it.price)||0)*r.qty:0)},0)}
+function reposicaoPack(itens){return (itens||[]).reduce((s,r)=>{const it=itemById(r.catalogId);
+  return s+(it?(Number(it.replacement)||0)*(r.qty||0):0)},0)}
+
+/* ---------- volume de peças: quanto sai de uma vez, folga por risco, quanto falta ---------- */
+/* a maior quantidade que um único tema ou kit consome — é o pior caso de um evento só */
+function demandaPack(id){
+  return state.packs.reduce((mx,p)=>{
+    const q=(p.items||[]).filter(r=>r.catalogId===id).reduce((s,r)=>s+(Number(r.qty)||0),0);
+    return Math.max(mx,q);
+  },0);
+}
+/* a maior quantidade já prometida ao mesmo tempo em pedidos ativos */
+function demandaPedidos(id){
+  const ativos=state.orders.filter(o=>ATIVOS.includes(o.status));
+  return ativos.reduce((mx,o)=>{
+    const q=(o.items||[]).filter(r=>r.catalogId===id).reduce((s,r)=>s+(Number(r.qty)||0),0);
+    return Math.max(mx,q);
+  },0);
+}
+function demandaMax(id){return Math.max(demandaPack(id),demandaPedidos(id))}
+function folgaPecas(it){
+  if(it.folgaManual!==null&&it.folgaManual!==undefined&&it.folgaManual!=='')return Math.max(0,Number(it.folgaManual)||0);
+  const d=demandaMax(it.id), pct=FOLGA_RISCO[it.risco]??0;
+  return d>0&&pct>0?Math.max(1,Math.ceil(d*pct)):0;
+}
+function idealQty(it){return demandaMax(it.id)+folgaPecas(it)}
+function faltaComprar(it){return Math.max(0,idealQty(it)-(Number(it.qty)||0))}
+/* já pedidas: o que está em quero comprar / aguardando / repor, ligado a esta peça */
+function jaNaLista(it){
+  return state.purchases.filter(p=>['Quero comprar','Aguardando entrega','Repor peça'].includes(p.status)
+    && (p.linkedCatalogId===it.id || (!p.linkedCatalogId&&p.name===it.name)))
+    .reduce((s,p)=>s+(Number(p.qty)||1),0);
+}
+function faltaPedir(it){return Math.max(0,faltaComprar(it)-jaNaLista(it))}
+function usosRestantes(it){return (Number(it.lifeUses)||1)-(Number(it.usos)||0)}
+function passouVida(it){return (Number(it.qty)||0)>0 && usosRestantes(it)<=0}
+function pertoDoFim(it){const v=Number(it.lifeUses)||1;return !passouVida(it)&&usosRestantes(it)<=Math.max(1,Math.round(v*.2))}
+
+/* ---------- disponibilidade com folga ---------- */
+function dt(date,time,end=false){if(!date)return null;return new Date(date+'T'+(time||(end?'23:59':'00:00'))).getTime()}
+function overlaps(a1,a2,b1,b2){return a1<=b2&&b1<=a2}
+const ATIVOS=['Confirmado','Em preparação','Entregue / montado','Aguardando devolução'];
+function reservedQty(id,start,end,exceto){
+  if(start===null||end===null)return 0;
+  const folga=(Number(state.settings.folga)||0)*3600000;
+  let total=0;
+  state.orders.forEach(o=>{
+    if(o.id===exceto)return;
+    if(!ATIVOS.includes(o.status))return;
+    const os=dt(o.pickupDate,o.pickupTime), oe=dt(o.returnDate,o.returnTime,true);
+    if(os===null||oe===null)return;
+    if(!overlaps(start,end,os-folga,oe+folga))return;
+    (o.items||[]).forEach(r=>{if(r.catalogId===id)total+=Number(r.qty)||0});
+  });
+  return total;
+}
+function periodo(){return{s:dt($('#pickupDate').value,$('#pickupTime').value),e:dt($('#returnDate').value,$('#returnTime').value,true)}}
+function availability(id,requested){
+  const it=itemById(id); if(!it)return{reserved:0,available:0,status:'Indisponível'};
+  const {s,e}=periodo();
+  if(s===null||e===null)return{reserved:0,available:it.qty,status:'Informe o período'};
+  const reserved=reservedQty(id,s,e,editandoId), available=Math.max(0,(it.qty||0)-reserved);
+  return{reserved,available,status:available>=requested?'Disponível':available>0?'Parcial':'Indisponível'};
+}
+
+/* ---------- estado da tela de orçamento ---------- */
+let packSel=null, removidos=new Set(), extraRows={}, personalizedRows=[], editandoId=null;
+
+function currentPack(){return packSel?packById(packSel):null}
+function budgetLines(){
+  const rows=[], p=currentPack();
+  (p?.items||[]).forEach((r,i)=>{ if(removidos.has(i))return;
+    const it=itemById(r.catalogId); if(it)rows.push({catalogId:r.catalogId,qty:r.qty,name:it.name,detail:'',value:r.qty*(it.price||0)});});
+  Object.values(extraRows).forEach(r=>{const it=itemById(r.id);
+    if(it&&r.qty>0)rows.push({catalogId:r.id,qty:r.qty,name:it.name,detail:r.detail||'',value:r.qty*(it.price||0)});});
+  return rows;
+}
+function calc(){
+  const p=currentPack();
+  let base=p?(Number(p.price)||0):0, desconto=0, extras=0;
+  (p?.items||[]).forEach((r,i)=>{ if(removidos.has(i)){ const it=itemById(r.catalogId); if(it)desconto+=(it.price||0)*r.qty; }});
+  Object.values(extraRows).forEach(r=>{const it=itemById(r.id);if(it&&r.qty>0)extras+=r.qty*(it.price||0)});
+  const personalizados=personalizedRows.reduce((s,r)=>s+(Number(r.value)||0),0);
+  const logistica=Number($('#logValue').value)||0;
+  const total=Math.max(0,base-desconto+extras+personalizados+logistica);
+  const rep=reposicaoPack(budgetLines().map(r=>({catalogId:r.catalogId,qty:r.qty})));
+  const s=state.settings;
+  const caucao=Math.max(Number(s.deposit)||0, rep*((Number(s.depositPct)||0)/100));
+  return{base,desconto,extras,personalizados,logistica,total,reposicao:rep,caucao};
+}
+function fmtDate(v){if(!v)return'';const [y,m,d]=v.split('-');return `${d}/${m}/${y}`}
+function hoje(){const d=new Date();return d.toLocaleDateString('pt-BR')}
+
+/* ================= ORÇAMENTO ================= */
+/* qual visão está aberta: tema (com foto), kit (lista) ou zero */
+let vistaPack='tema', catTema='', catKit='';
+function servePara(p){const t=$('#type').value;return p.para==='Ambos'||p.para===t}
+function escolherPack(id){packSel=id;removidos.clear();renderOrcamento()}
+
+function renderPacks(){
+  /* mostra a visão certa */
+  $$('#segPack button').forEach(b=>b.classList.toggle('on',b.dataset.psel===vistaPack));
+  $('#viewTema').classList.toggle('hidden',vistaPack!=='tema');
+  $('#viewKit').classList.toggle('hidden',vistaPack!=='kit');
+  $('#viewZero').classList.toggle('hidden',vistaPack!=='zero');
+
+  const sel=currentPack();
+  $('#pillEscolhido').textContent=sel
+    ? (sel.kind==='tema'?'Tema: ':'Kit: ')+sel.name+' · '+money0(sel.price)
+    : 'Montando do zero';
+  $('#pillEscolhido').className='pill'+(sel?' ok':'');
+
+  renderTemas(); renderKits();
+}
+/* chips de categoria: mesma peca serve tema, kit e a aba de cadastro */
+function montaChips(alvo, lista, atual, aoTrocar){
+  const w=$(alvo); if(!w)return; w.innerHTML='';
+  const cont={}; lista.forEach(p=>{const c=(p.categoria||'Sem categoria'); cont[c]=(cont[c]||0)+1});
+  const cats=Object.keys(cont).sort();
+  if(cats.length<2){w.classList.add('hidden');return} w.classList.remove('hidden');
+  const mk=(txt,val,n)=>{
+    const b=document.createElement('button'); b.className='chip'+(atual===val?' on':'');
+    b.innerHTML=esc(txt)+(n!=null?` <span class="n">${n}</span>`:'');
+    b.onclick=()=>aoTrocar(atual===val?'':val);
+    return b;
+  };
+  w.appendChild(mk('Tudo','',lista.length));
+  cats.forEach(c=>w.appendChild(mk(c,c,cont[c])));
+}
+const naCategoria=(p,cat)=>!cat||(p.categoria||'Sem categoria')===cat;
+
+function renderTemas(){
+  const w=$('#packBtns'); w.innerHTML='';
+  const busca=($('#buscaTema').value||'').toLowerCase();
+  const doTipo=state.packs.filter(p=>p.kind==='tema'&&servePara(p));
+  montaChips('#chipsTema',doTipo,catTema,v=>{catTema=v;renderTemas()});
+  const lista=doTipo.filter(p=>naCategoria(p,catTema))
+    .filter(p=>!busca||[p.name,p.desc,p.para,p.categoria].join(' ').toLowerCase().includes(busca));
+  if(!lista.length){
+    w.innerHTML=`<div class="muted" style="grid-column:1/-1;padding:6px 0">${busca||catTema
+      ?'Nenhum tema com esse filtro.'
+      :'Nenhum tema para '+esc($('#type').value)+'. Crie na aba Temas e kits.'}</div>`;
+    return;
+  }
+  lista.forEach(p=>{
+    const b=document.createElement('button');
+    b.className='pack'+(packSel===p.id?' selected':'');
+    b.innerHTML=`<div class="foto" ${p.foto?`style="background-image:url('${p.foto}')"`:''}>${p.foto?'':'▦'}</div>
+      <div class="corpo"><span class="tagk">${p.categoria?esc(p.categoria):'Tema'}</span><b>${esc(p.name)}</b>
+      <div class="p">${money0(p.price)}</div>${p.desc?`<div class="d">${esc(p.desc)}</div>`:''}</div>`;
+    b.onclick=()=>escolherPack(p.id);
+    w.appendChild(b);
+  });
+}
+function renderKits(){
+  const w=$('#kitList'); w.innerHTML='';
+  const busca=($('#buscaKit').value||'').toLowerCase();
+  const doTipo=state.packs.filter(p=>p.kind==='kit'&&servePara(p));
+  montaChips('#chipsKit',doTipo,catKit,v=>{catKit=v;renderKits()});
+  const lista=doTipo.filter(p=>naCategoria(p,catKit))
+    .filter(p=>!busca||[p.name,p.desc,p.para,p.categoria].join(' ').toLowerCase().includes(busca));
+  if(!lista.length){
+    w.innerHTML='<div class="muted">Nenhum kit com esse filtro. Crie na aba Temas e kits.</div>';
+    return;
+  }
+  lista.forEach(p=>{
+    const n=(p.items||[]).reduce((s,r)=>s+(Number(r.qty)||0),0);
+    const r=document.createElement('div'); r.className='kitrow'+(packSel===p.id?' on':'');
+    r.innerHTML=`<div><b>${esc(p.name)}</b>${p.categoria?` <span class="pill">${esc(p.categoria)}</span>`:''}
+        <div class="muted" style="margin-top:2px">${n} peça(s)${p.desc?' · '+esc(p.desc):''}</div></div>
+      <div class="pr">${money0(p.price)}</div>
+      <button class="small ${packSel===p.id?'primary':''}" data-usar>${packSel===p.id?'Escolhido':'Usar'}</button>`;
+    r.querySelector('[data-usar]').onclick=()=>escolherPack(p.id);
+    w.appendChild(r);
+  });
+}
+function textoDisp(id,qty){
+  const a=availability(id,qty), it=itemById(id);
+  const cls=a.status==='Disponível'?'ok':a.status==='Indisponível'?'bad':'warn';
+  return `<span class="pill ${cls}">${a.status}</span> <span class="muted">tem ${it?.qty||0} · reservado ${a.reserved} · livre ${a.available}</span>`;
+}
+function renderItensPack(){
+  const p=currentPack(), w=$('#packItems');
+  $('#itensTitulo').textContent=p?('Vai junto no '+(p.kind==='tema'?'tema':'kit')):'Peças escolhidas';
+  $('#itensBox').classList.toggle('hidden',!p);
+  if(!p)return;
+  w.innerHTML='';
+  (p.items||[]).forEach((r,i)=>{
+    const it=itemById(r.catalogId); if(!it)return;
+    const row=document.createElement('label'); row.className='line';
+    row.innerHTML=`<div><b>${r.qty}× ${esc(it.name)}</b><div style="margin-top:3px">${textoDisp(r.catalogId,r.qty)}</div>
+      <div class="muted" style="margin-top:2px">Tirando, desconta ${money0((it.price||0)*r.qty)}</div></div>
+      <div style="text-align:right"><input type="checkbox" ${removidos.has(i)?'checked':''}> <span class="muted" style="font-size:12px">tirar</span></div>`;
+    row.querySelector('input').onchange=e=>{e.target.checked?removidos.add(i):removidos.delete(i);renderOrcamento()};
+    w.appendChild(row);
+  });
+}
+function renderExtras(){
+  const w=$('#extras'); w.innerHTML='';
+  const busca=($('#buscaExtra').value||'').toLowerCase();
+  const p=currentPack();
+  const noPack=new Set((p?.items||[]).map(r=>r.catalogId));
+  state.catalog.filter(it=>!busca||[it.name,it.group,it.subgroup].join(' ').toLowerCase().includes(busca))
+   .forEach(it=>{
+    const r=extraRows[it.id]||(extraRows[it.id]={id:it.id,qty:0,detail:''});
+    const row=document.createElement('div'); row.className='line';
+    row.innerHTML=`<div><b>${esc(it.name)}</b>${noPack.has(it.id)?' <span class="pill">já vem no pacote</span>':''}
+      <div class="muted">${money0(it.price)} a locação${r.qty>0?' · '+textoDisp(it.id,r.qty):''}</div></div>
+      <input data-qty type="number" min="0" value="${r.qty||0}">`;
+    row.querySelector('[data-qty]').oninput=e=>{r.qty=Math.max(0,+e.target.value||0);renderOrcamento()};
+    w.appendChild(row);
+  });
+  if(!w.children.length) w.innerHTML='<div class="muted" style="padding:10px 0">Nenhuma peça encontrada.</div>';
+}
+function renderPersonalized(){
+  const w=$('#personalizedList'); w.innerHTML='';
+  personalizedRows.forEach((r,i)=>{
+    const row=document.createElement('div'); row.className='row'; row.style.gridTemplateColumns='1fr 1fr .7fr auto';
+    row.innerHTML=`<label>O que é<input data-type value="${esc(r.type||'')}" placeholder="Painel impresso"></label>
+      <label>Detalhe<input data-detail value="${esc(r.detail||'')}" placeholder="1,5 m, arte da cliente"></label>
+      <label>Valor<input data-value type="number" min="0" step="10" value="${r.value||0}"></label>
+      <button data-del class="danger small">Excluir</button>`;
+    row.querySelector('[data-type]').oninput=e=>{r.type=e.target.value;updateSummary()};
+    row.querySelector('[data-detail]').oninput=e=>{r.detail=e.target.value;updateSummary()};
+    row.querySelector('[data-value]').oninput=e=>{r.value=Math.max(0,+e.target.value||0);updateSummary()};
+    row.querySelector('[data-del]').onclick=()=>{personalizedRows.splice(i,1);renderPersonalized();updateSummary()};
+    w.appendChild(row);
+  });
+  if(!personalizedRows.length) w.innerHTML='<div class="muted">Nada ainda. Use para impresso, arte ou montagem feita só para este evento.</div>';
+  $('#personalizedTotal').textContent=money(personalizedRows.reduce((s,r)=>s+(Number(r.value)||0),0));
+}
+function problemasDisponibilidade(){
+  const {s,e}=periodo(); if(s===null||e===null)return[];
+  const faltas=[]; const soma={};
+  budgetLines().forEach(r=>{soma[r.catalogId]=(soma[r.catalogId]||0)+r.qty});
+  Object.keys(soma).forEach(id=>{
+    const it=itemById(id); if(!it)return;
+    const livre=Math.max(0,(it.qty||0)-reservedQty(id,s,e,editandoId));
+    if(soma[id]>livre) faltas.push(`${it.name}: pediu ${soma[id]}, livre ${livre}`);
+  });
+  return faltas;
+}
+function updateSummary(){
+  const c=calc(), p=currentPack();
+  $('#sumTitle').textContent=$('#client').value||'Novo orçamento';
+  $('#sumMeta').textContent=`${$('#type').value} • ${p?p.name:'Montado do zero'}`;
+  $('#baseLabel').textContent=p?(p.kind==='tema'?'Tema '+p.name:'Kit '+p.name):'Peças';
+  $('#base').textContent=money(c.base);
+  $('#disc').textContent='− '+money(c.desconto); $('#linhaDesc').classList.toggle('hidden',!c.desconto);
+  $('#ext').textContent=money(c.extras); $('#linhaExt').classList.toggle('hidden',!c.extras);
+  $('#persTotalSum').textContent=money(c.personalizados); $('#linhaPers').classList.toggle('hidden',!c.personalizados);
+  $('#logTotal').textContent=money(c.logistica); $('#linhaLog').classList.toggle('hidden',!c.logistica);
+  $('#total').textContent=money(c.total);
+  $('#caucaoSug').textContent=money(c.caucao);
+  $('#caucaoHint').textContent=c.reposicao>0
+    ? `As peças desta reserva valem ${money0(c.reposicao)} para repor. A caução é ${state.settings.depositPct}% disso.`
+    : 'Escolha as peças e a caução se calcula sozinha.';
+  $('#whatsText').value=budgetText();
+  $('#confirmText').value=confirmationText();
+
+  const faltas=problemasDisponibilidade();
+  const box=$('#avisoDisp');
+  box.classList.toggle('hidden',!faltas.length);
+  if(faltas.length) box.innerHTML='<b>Não dá para reservar tudo neste período:</b><br>'+faltas.map(esc).join('<br>');
+
+  const {s,e}=periodo();
+  $('#periodoHint').textContent=(s===null||e===null)
+    ? 'Preencha retirada e devolução — sem isso não dá para conferir disponibilidade.'
+    : (e<=s ? '⚠ A devolução está antes da retirada.'
+      : `Período de ${Math.max(1,Math.round((e-s)/86400000))} dia(s), mais ${state.settings.folga}h de folga antes e depois para conferência.`);
+}
+function renderOrcamento(){renderPacks();renderItensPack();renderExtras();renderPersonalized();updateSummary()}
+
+/* ================= TEXTOS ================= */
+function budgetText(){
+  const c=calc(), rows=budgetLines(), p=currentPack(), s=state.settings;
+  const nome=($('#client').value||'').trim().split(' ')[0];
+  let t='';
+  t+=`*ORÇAMENTO — ${(p?p.name:'DECORAÇÃO').toUpperCase()}*\n\n`;
+  t+=nome?`Oi, ${nome}! Segue a proposta para o seu evento 💛\n\n`:`Segue a proposta para o seu evento 💛\n\n`;
+  if($('#pickupDate').value) t+=`*Retirada:* ${fmtDate($('#pickupDate').value)}${$('#pickupTime').value?' às '+$('#pickupTime').value:''}\n`;
+  if($('#returnDate').value) t+=`*Devolução:* ${fmtDate($('#returnDate').value)}${$('#returnTime').value?' às '+$('#returnTime').value:''}\n`;
+  if($('#loc').value) t+=`*Local:* ${$('#loc').value}\n`;
+  if(p&&p.desc) t+=`\n_${p.desc}_\n`;
+  t+=`\n*O que vai:*\n`;
+  rows.forEach(r=>{t+=`• ${r.qty}× ${r.name}${r.detail?' — '+r.detail:''}\n`});
+  if(personalizedRows.length){
+    t+=`\n*Feito para o seu evento:*\n`;
+    personalizedRows.forEach(r=>{t+=`• ${r.type||'Personalizado'}${r.detail?' — '+r.detail:''}\n`});
+  }
+  t+=`\n*Valores*\n`;
+  t+=`Decoração: ${money(c.base-c.desconto+c.extras)}\n`;
+  if(c.personalizados>0) t+=`Feito para o evento: ${money(c.personalizados)}\n`;
+  if(c.logistica>0) t+=`${$('#logType').value}: ${money(c.logistica)}\n`;
+  t+=`*Total: ${money(c.total)}*\n`;
+  if(c.caucao>0) t+=`Caução: ${money(c.caucao)} — devolvida quando as peças voltam certinhas\n`;
+  t+=`\n*Como funciona*\n`;
+  t+=`• ${s.signalPercent}% para reservar a data (${money(c.total*(s.signalPercent/100))}), o resto até a retirada\n`;
+  t+=`• ${s.pagto}\n`;
+  const log=$('#logType').value;
+  t+= log.indexOf('Sem entrega')===0
+    ? `• Você busca e devolve nos horários acima, e vai um guia de montagem junto com fotos\n`
+    : `• A gente entrega, monta e volta para recolher\n`;
+  t+=`\nValores válidos por ${s.validade} dias. A data fica reservada quando o sinal cai 🙂`;
+  return t;
+}
+function confirmationText(){
+  const c=calc(), s=state.settings, sinal=c.total*(s.signalPercent/100);
+  let t=`*CONFIRMAÇÃO DA RESERVA*\n\n`;
+  t+=`Que bom! Para fechar a data, me manda:\n\n`;
+  t+=`1️⃣ Comprovante do sinal de *${money(sinal)}*\n`;
+  if(s.pix) t+=`Pix: ${s.pix}\n`;
+  t+=`\n2️⃣ ${s.docs}\n`;
+  t+=`\n3️⃣ Uma resposta com estas duas frases:\n`;
+  t+=`"Li e concordo com as condições do aluguel."\n`;
+  t+=`"Autorizo assinar o termo pelo WhatsApp."\n\n`;
+  t+=`*Saldo restante:* ${money(Math.max(0,c.total-sinal))}, até a retirada\n`;
+  if(c.caucao>0) t+=`*Caução:* ${money(c.caucao)}, devolvida na conferência\n`;
+  t+=`\nAssim que o sinal chegar, eu bloqueio a data e te mando o termo. Até lá as peças seguem disponíveis para outros pedidos.`;
+  return t;
+}
+
+/* ================= DOCUMENTOS ================= */
+function cabecalhoDoc(){
+  const s=state.settings;
+  const linha2=[s.docEmpresa?('CNPJ/CPF '+s.docEmpresa):'', s.contato?('WhatsApp '+s.contato):''].filter(Boolean).join(' · ');
+  return {nome:s.empresa||'Aluguel de decoração', linha2};
+}
+function withdrawalDocumentHTML(o){
+  const s=state.settings, h=cabecalhoDoc();
+  const pago=(o.payments||[]).reduce((a,p)=>a+p.value,0);
+  const saldo=Math.max(0,o.total-pago);
+  const dep=Number(o.deposit)||Number(o.caucaoSugerida)||0;
+  const rep=reposicaoPack((o.items||[]).map(x=>({catalogId:x.catalogId,qty:x.qty})));
+  const rows=(o.items||[]).map(x=>{const it=itemById(x.catalogId);
+    return `<tr><td>${esc(x.name)}${x.detail?' — '+esc(x.detail):''}</td><td>${x.qty}</td>
+      <td>${money(it?.replacement||0)}</td><td></td></tr>`}).join('');
+  return `<h2>TERMO DE RETIRADA E RESPONSABILIDADE</h2>
+  <p class="sub">${esc(h.nome)}${h.linha2?' · '+esc(h.linha2):''}</p>
+  <div class="docgrid">
+    <div><b>Cliente:</b> ${esc(o.client||'-')}</div>
+    <div><b>CPF/CNPJ:</b> ${esc(o.doc||'-')}</div>
+    <div><b>WhatsApp:</b> ${esc(o.phone||'-')}</div>
+    <div><b>Tema ou kit:</b> ${esc(o.packName||'-')}</div>
+    <div><b>Retirada:</b> ${esc(fmtDate(o.pickupDate)||'-')} ${esc(o.pickupTime||'')}</div>
+    <div><b>Devolução:</b> ${esc(fmtDate(o.returnDate)||'-')} ${esc(o.returnTime||'')}</div>
+    <div style="grid-column:1/-1"><b>Local do evento:</b> ${esc(o.location||'-')}</div>
+  </div>
+  <h3>Peças retiradas</h3>
+  <table class="doctable"><thead><tr><th>Peça</th><th>Qtd.</th><th>Valor de reposição</th><th>Conferido</th></tr></thead>
+  <tbody>${rows||'<tr><td colspan="4">—</td></tr>'}</tbody></table>
+  <p style="font-size:12px;color:#555;margin-top:-6px">Valor total de reposição das peças: <b>${money(rep)}</b>.
+  É esse o valor de referência em caso de perda ou quebra.</p>
+  ${(o.personalized||[]).length?`<h3>Feito para o evento — fica com o cliente</h3>
+    <table class="doctable"><thead><tr><th>Item</th><th>Detalhe</th><th>Valor</th></tr></thead><tbody>
+    ${(o.personalized||[]).map(p=>`<tr><td>${esc(p.type||'Personalizado')}</td><td>${esc(p.detail||'')}</td><td>${money(p.value||0)}</td></tr>`).join('')}
+    </tbody></table>`:''}
+  <h3>Valores</h3>
+  <table class="doctable"><tbody>
+    <tr><td>Valor do aluguel</td><td>${money(o.total)}</td></tr>
+    <tr><td>Já pago</td><td>${money(pago)}</td></tr>
+    <tr><td><b>Saldo a pagar</b></td><td><b>${money(saldo)}</b></td></tr>
+    <tr><td>Caução recebida</td><td>${money(dep)}</td></tr>
+    ${o.logistics?`<tr><td>${esc(o.logType||'Entrega')}</td><td>${money(o.logistics)}</td></tr>`:''}
+    <tr><td>Multa por dia de atraso</td><td>${money(s.lateFee)}</td></tr>
+  </tbody></table>
+  ${o.logNotes?`<p><b>Observações:</b> ${esc(o.logNotes)}</p>`:''}
+  <h3>Condições</h3>
+  <div style="white-space:pre-wrap;font-size:12.5px">${esc(s.rules)}</div>
+  <p style="margin-top:16px">Declaro que recebi as peças listadas acima, nas quantidades indicadas e em condições de uso,
+  e me responsabilizo pela guarda e pela devolução no prazo combinado.</p>
+  <div class="assin">
+    <div><div class="docline"></div><div style="font-size:12px">Cliente — ${esc(o.client||'')}</div></div>
+    <div><div class="docline"></div><div style="font-size:12px">${esc(h.nome)}</div></div>
+  </div>
+  <p style="margin-top:14px;font-size:12px">Belo Horizonte, ____ de ______________ de ________.</p>`;
+}
+function returnDocumentHTML(o){
+  const s=state.settings, h=cabecalhoDoc();
+  const dep=Number(o.deposit)||0;
+  const occ=o.returns||[];
+  const retido=occ.reduce((a,r)=>a+(Number(r.charge)||0),0);
+  const devolver=Math.max(0,dep-retido);
+  const porNome={}; occ.forEach(r=>{(porNome[r.item]=porNome[r.item]||[]).push(r)});
+  const rows=(o.items||[]).map(x=>{
+    const oc=porNome[x.name]||[];
+    let sit='Tudo certo', cob=0;
+    if(oc.length){
+      const afet=oc.reduce((a,r)=>a+(Number(r.qty)||1),0);
+      sit=oc.map(r=>`${r.qty||1}× ${r.status}`).join(' | ');
+      if(x.qty>afet) sit+=` | ${x.qty-afet}× ok`;
+      cob=oc.reduce((a,r)=>a+(Number(r.charge)||0),0);
+    }
+    return `<tr><td>${esc(x.name)}</td><td>${x.qty}</td><td>${esc(sit)}</td><td>${cob?money(cob):'—'}</td></tr>`;
+  }).join('');
+  return `<h2>TERMO DE DEVOLUÇÃO E CONFERÊNCIA</h2>
+  <p class="sub">${esc(h.nome)}${h.linha2?' · '+esc(h.linha2):''}</p>
+  <div class="docgrid">
+    <div><b>Cliente:</b> ${esc(o.client||'-')}</div>
+    <div><b>CPF/CNPJ:</b> ${esc(o.doc||'-')}</div>
+    <div><b>Devolução prevista:</b> ${esc(fmtDate(o.returnDate)||'-')} ${esc(o.returnTime||'')}</div>
+    <div><b>Conferido em:</b> ____/____/________</div>
+  </div>
+  <h3>Conferência das peças</h3>
+  <table class="doctable"><thead><tr><th>Peça</th><th>Qtd.</th><th>Situação</th><th>Cobrança</th></tr></thead>
+  <tbody>${rows||'<tr><td colspan="4">—</td></tr>'}</tbody></table>
+  <h3>Acerto da caução</h3>
+  <table class="doctable"><tbody>
+    <tr><td>Caução recebida na retirada</td><td>${money(dep)}</td></tr>
+    <tr><td>Retido por dano, perda ou atraso</td><td>${money(retido)}</td></tr>
+    <tr><td><b>A devolver ao cliente</b></td><td><b>${money(devolver)}</b></td></tr>
+  </tbody></table>
+  <p><b>Observações da conferência:</b></p><div class="docline"></div><div class="docline"></div>
+  <p style="margin-top:14px">Declaro que as peças foram conferidas em conjunto e que o acerto da caução acima está correto.</p>
+  <div class="assin">
+    <div><div class="docline"></div><div style="font-size:12px">Cliente — ${esc(o.client||'')}</div></div>
+    <div><div class="docline"></div><div style="font-size:12px">${esc(h.nome)}</div></div>
+  </div>`;
+}
+function rascunho(){
+  const c=calc(), p=currentPack();
+  return {id:editandoId||'rascunho',client:$('#client').value,phone:$('#phone').value,doc:$('#doc').value,
+    type:$('#type').value,packName:p?p.name:'Montado do zero',packId:packSel,
+    pickupDate:$('#pickupDate').value,pickupTime:$('#pickupTime').value,
+    returnDate:$('#returnDate').value,returnTime:$('#returnTime').value,
+    location:$('#loc').value,logType:$('#logType').value,logistics:c.logistica,logNotes:$('#logNotes').value,
+    total:c.total,status:'Orçamento enviado',payments:[],deposit:0,caucaoSugerida:c.caucao,usosContados:false,
+    items:budgetLines(),personalized:personalizedRows.map(r=>({...r})),returns:[]};
+}
+function showDocument(html){$('#docContent').innerHTML=html;$('#docModal').classList.remove('hidden')}
+
+/* ================= PEDIDOS ================= */
+const STATUS=['Orçamento enviado','Aguardando sinal','Confirmado','Em preparação','Entregue / montado','Aguardando devolução','Finalizado','Cancelado'];
+function renderOrders(){
+  const filtro=$('#filtroPedidos').value;
+  const arr=state.orders.slice().sort((a,b)=>String(a.pickupDate||'9999').localeCompare(String(b.pickupDate||'9999')));
+  const vis=filtro==='ativos'?arr.filter(o=>!['Finalizado','Cancelado'].includes(o.status)):arr;
+  const w=$('#orders'); w.innerHTML='';
+  const aberto=arr.filter(o=>!['Finalizado','Cancelado'].includes(o.status));
+  $('#openCount').textContent=aberto.length;
+  $('#confCount').textContent=arr.filter(o=>ATIVOS.includes(o.status)).length;
+  $('#receive').textContent=money(arr.filter(o=>ATIVOS.includes(o.status))
+    .reduce((s,o)=>s+Math.max(0,o.total-(o.payments||[]).reduce((a,p)=>a+p.value,0)),0));
+  $('#depTotal').textContent=money(arr.filter(o=>!['Finalizado','Cancelado'].includes(o.status))
+    .reduce((s,o)=>s+(Number(o.deposit)||0),0));
+
+  if(!vis.length){w.innerHTML='<div class="muted">Nenhum pedido aqui.</div>';return}
+  vis.forEach(o=>{
+    const pago=(o.payments||[]).reduce((s,p)=>s+p.value,0), saldo=Math.max(0,o.total-pago);
+    const dep=Number(o.deposit)||0, retido=(o.returns||[]).reduce((s,r)=>s+(Number(r.charge)||0),0);
+    const devolver=Math.max(0,dep-retido);
+    const r=document.createElement('div'); r.className='order'+(editandoId===o.id?' editando':'');
+    r.innerHTML=`<div class="sectionbar">
+      <div><b>${esc(o.client||'Sem nome')}</b>
+        <div class="muted">${esc(o.type||'')} · ${esc(o.packName||'')} · ${fmtDate(o.pickupDate)||'sem data'} → ${fmtDate(o.returnDate)||'—'}</div></div>
+      <div style="text-align:right"><b>${money(o.total)}</b><div class="muted">${saldo>0?'saldo '+money(saldo):'pago'}</div></div></div>
+      <div class="checkgrid" style="margin-top:10px">
+        <div class="check"><b>Peças</b><div class="muted">${(o.items||[]).map(x=>`${x.qty}× ${esc(x.name)}`).join(' · ')||'—'}</div></div>
+        <div class="check"><b>Pagamento</b><div class="muted">Recebido ${money(pago)} · falta ${money(saldo)}</div></div>
+        <div class="check"><b>Caução</b><div class="muted">${dep?`Recebida ${money(dep)} · devolver ${money(devolver)}`:'Sugerida '+money(o.caucaoSugerida||0)}</div></div>
+        <div class="check"><b>Devolução</b><div class="muted">${(o.returns||[]).length?(o.returns.length+' ocorrência(s)'):'sem ocorrência'}</div></div>
+      </div>
+      <div class="actions" style="margin-top:11px">
+        <select data-status style="max-width:190px">${STATUS.map(s=>`<option${s===o.status?' selected':''}>${s}</option>`).join('')}</select>
+        <button data-edit class="small primary">Editar</button>
+        <button data-pay class="small">+ Pagamento</button>
+        <button data-deposit class="small">Caução</button>
+        <button data-withdraw class="small">Termo de retirada</button>
+        <button data-return-doc class="small">Termo de devolução</button>
+        <button data-return class="small">Registrar devolução</button>
+        <button data-del class="small danger">Excluir</button>
+      </div>`;
+    r.querySelector('[data-status]').onchange=e=>{o.status=e.target.value;contarUsos(o);save();renderTudo()};
+    r.querySelector('[data-edit]').onclick=()=>carregarPedido(o);
+    r.querySelector('[data-pay]').onclick=()=>{
+      const v=prompt('Valor recebido:'); if(v===null)return;
+      const value=Math.max(0,+String(v).replace(',','.')||0); if(!value)return;
+      const m=prompt('Forma de pagamento','Pix')||'Não informado';
+      o.payments=o.payments||[]; o.payments.push({value,method:m,date:hoje()}); save(); renderTudo();};
+    r.querySelector('[data-deposit]').onclick=()=>{
+      const v=prompt('Caução recebida:',o.deposit||Math.round(o.caucaoSugerida||0)); if(v===null)return;
+      o.deposit=Math.max(0,+String(v).replace(',','.')||0); save(); renderTudo();};
+    r.querySelector('[data-withdraw]').onclick=()=>showDocument(withdrawalDocumentHTML(o));
+    r.querySelector('[data-return-doc]').onclick=()=>showDocument(returnDocumentHTML(o));
+    r.querySelector('[data-return]').onclick=()=>registrarDevolucao(o);
+    r.querySelector('[data-del]').onclick=()=>{
+      if(!confirm(`Excluir o pedido de ${o.client||'sem nome'}? Isso libera as peças reservadas.`))return;
+      state.orders=state.orders.filter(x=>x.id!==o.id);
+      if(editandoId===o.id) limparOrcamento();
+      save(); renderTudo();};
+    w.appendChild(r);
+  });
+}
+/* cada peça que saiu neste pedido ganha +1 locação quando ele é finalizado.
+   a marca usosContados garante que não conte duas vezes se o status vai e volta */
+function contarUsos(o){
+  if(o.status==='Finalizado'&&!o.usosContados){
+    const vistos=new Set(); const gastaram=[];
+    (o.items||[]).forEach(x=>{
+      if(vistos.has(x.catalogId))return; vistos.add(x.catalogId);
+      const it=itemById(x.catalogId); if(!it)return;
+      it.usos=(Number(it.usos)||0)+1;
+      if(passouVida(it)) gastaram.push(it.name);
+    });
+    o.usosContados=true;
+    toast(gastaram.length
+      ? `Uso contabilizado. ${gastaram.join(', ')} passou da vida útil — veja em "O que falta comprar".`
+      : 'Pedido finalizado e uso das peças contabilizado.');
+  }
+  if(o.status!=='Finalizado'&&o.usosContados){
+    const vistos=new Set();
+    (o.items||[]).forEach(x=>{
+      if(vistos.has(x.catalogId))return; vistos.add(x.catalogId);
+      const it=itemById(x.catalogId); if(it) it.usos=Math.max(0,(Number(it.usos)||0)-1);
+    });
+    o.usosContados=false;
+  }
+}
+function carregarPedido(o){
+  editandoId=o.id;
+  $('#client').value=o.client||''; $('#phone').value=o.phone||''; $('#doc').value=o.doc||'';
+  $('#type').value=o.type||'Social';
+  $('#pickupDate').value=o.pickupDate||''; $('#pickupTime').value=o.pickupTime||'';
+  $('#returnDate').value=o.returnDate||''; $('#returnTime').value=o.returnTime||'';
+  $('#loc').value=o.location||''; $('#logType').value=o.logType||'Sem entrega — o cliente busca';
+  $('#logValue').value=o.logistics||0; $('#logNotes').value=o.logNotes||'';
+  personalizedRows=(o.personalized||[]).map(r=>({...r}));
+  /* as peças salvas viram "extras": o pedido manda, não o pacote */
+  packSel=null; removidos.clear(); extraRows={};
+  (o.items||[]).forEach(x=>{extraRows[x.catalogId]={id:x.catalogId,qty:x.qty,detail:x.detail||''}});
+  if(o.packId&&packById(o.packId)){
+    const p=packById(o.packId);
+    const doPack={}; (p.items||[]).forEach(r=>doPack[r.catalogId]=r.qty);
+    const bate=Object.keys(doPack).every(id=>extraRows[id]&&extraRows[id].qty>=doPack[id]);
+    if(bate){
+      packSel=p.id;
+      Object.keys(doPack).forEach(id=>{
+        const resto=extraRows[id].qty-doPack[id];
+        if(resto>0)extraRows[id].qty=resto; else delete extraRows[id];
+      });
+    }
+  }
+  $('#editandoAviso').classList.remove('hidden');
+  abrirAba('orc'); renderOrcamento();
+  toast('Editando o pedido de '+(o.client||'sem nome')+'.');
+}
+function limparOrcamento(){
+  editandoId=null; packSel=null; removidos.clear(); extraRows={}; personalizedRows=[];
+  ['client','phone','doc','loc','logNotes'].forEach(id=>$('#'+id).value='');
+  $('#pickupDate').value=''; $('#returnDate').value='';
+  $('#pickupTime').value='09:00'; $('#returnTime').value='18:00';
+  $('#logValue').value=0; $('#logType').value='Sem entrega — o cliente busca';
+  $('#editandoAviso').classList.add('hidden');
+  renderOrcamento();
+}
+function registrarDevolucao(o){
+  const linhas=(o.items||[]).map((x,i)=>`${i+1} — ${x.qty}× ${x.name}`).join('\n');
+  if(!linhas){alert('Esse pedido não tem peças registradas.');return}
+  const n=prompt('Qual peça teve problema? Digite o número. Se está tudo certo, cancele.\n\n'+linhas);
+  if(n===null)return;
+  const i=(+n||0)-1, item=(o.items||[])[i]; if(!item)return;
+  const sit=prompt('O que houve? Danificado, Quebrado, Perdido ou Atraso','Danificado'); if(sit===null)return;
+  const cat=itemById(item.catalogId);
+  const sugerido=sit==='Atraso'?(state.settings.lateFee||0):(cat?.replacement||0);
+  const q=prompt('Quantas peças?','1'); if(q===null)return;
+  const qtd=Math.max(1,+q||1);
+  const v=prompt('Valor a reter da caução:',Math.round(sugerido*(sit==='Atraso'?1:qtd))); if(v===null)return;
+  o.returns=o.returns||[];
+  o.returns.push({item:item.name,status:sit,charge:Math.max(0,+String(v).replace(',','.')||0),qty:qtd});
+  if(['Quebrado','Perdido'].includes(sit)&&cat){
+    cat.qty=Math.max(0,(cat.qty||0)-qtd);
+    state.purchases.push({id:uid(),name:cat.name,cat:`${cat.group} > ${cat.subgroup}`,qty:qtd,
+      cost:cat.purchaseCost||cat.replacement||0,salePrice:cat.price||0,supplier:'',link:'',
+      status:'Repor peça',linkedCatalogId:cat.id,risco:cat.risco||'baixo',lifeUses:cat.lifeUses||20,
+      prioridade:'Alta'});
+    toast(`${qtd}× ${cat.name} saiu do acervo e entrou em "Repor peça".`);
+  }
+  save(); renderTudo();
+}
+
+/* ================= ACERVO ================= */
+let grupoFiltro='';
+function renderChips(){
+  const w=$('#catalogChips'); w.innerHTML='';
+  const cont={}; state.catalog.forEach(it=>{const g=it.group||'Sem grupo'; cont[g]=(cont[g]||0)+1});
+  const grupos=Object.keys(cont).sort();
+  const mk=(txt,val,n)=>{
+    const b=document.createElement('button'); b.className='chip'+(grupoFiltro===val?' on':'');
+    b.innerHTML=esc(txt)+(n!=null?` <span class="n">${n}</span>`:'');
+    b.onclick=()=>{grupoFiltro=(grupoFiltro===val?'':val);renderCatalog()};
+    return b;
+  };
+  w.appendChild(mk('Tudo','',state.catalog.length));
+  grupos.forEach(g=>w.appendChild(mk(g,g,cont[g])));
+}
+function renderCatalog(){
+  renderChips();
+  const busca=($('#catalogSearch').value||'').toLowerCase();
+  const soFalta=$('#acvSoFalta').checked;
+  const w=$('#catalogGroups'); w.innerHTML='';
+  const grupos={};
+  state.catalog
+    .filter(it=>!grupoFiltro||(it.group||'Sem grupo')===grupoFiltro)
+    .filter(it=>!busca||[it.name,it.group,it.subgroup].join(' ').toLowerCase().includes(busca))
+    .filter(it=>!soFalta||faltaComprar(it)>0||passouVida(it)||pertoDoFim(it))
+    .forEach(it=>{(grupos[it.group||'Sem grupo']=grupos[it.group||'Sem grupo']||[]).push(it)});
+  const chaves=Object.keys(grupos).sort();
+  if(!chaves.length){
+    w.innerHTML='<div class="muted" style="padding:8px 0">'+(soFalta
+      ?'Nada faltando nem gasto por aqui. 🙂':'Nenhuma peça encontrada.')+'</div>';
+  }
+  chaves.forEach(g=>{
+    const h=document.createElement('div'); h.className='catgroup'; h.textContent=g; w.appendChild(h);
+    grupos[g].sort((a,b)=>String(a.name).localeCompare(String(b.name),'pt-BR')).forEach(it=>{
+      const row=document.createElement('div'); row.className='acvrow';
+      const barato=abaixoDoCusto(it);
+      const falta=faltaComprar(it), ideal=idealQty(it), folga=folgaPecas(it);
+      const vida=Math.max(1,Number(it.lifeUses)||1), usos=Number(it.usos)||0;
+      const pct=Math.min(100,Math.round(usos/vida*100));
+      const cls=passouVida(it)?'bad':pertoDoFim(it)?'warn':'';
+      const pillRisco=it.risco==='alto'?'<span class="pill bad">quebra fácil</span>'
+        :it.risco==='medio'?'<span class="pill warn">desgasta</span>':'';
+      const d=demandaMax(it.id);
+      const col2=d===0
+        ? `<b>${it.qty||0}</b> <span class="lbl">no acervo</span><div class="lbl">fora de tema e kit</div>`
+        : `<b>${it.qty||0}</b> <span class="lbl">de ${ideal} ideal</span>
+           <div class="lbl">${folga?'folga '+folga:'sem folga'}${falta
+             ?` · <b style="color:var(--danger)">faltam ${falta}</b>`
+             :((it.qty||0)>ideal?` · sobra ${(it.qty||0)-ideal}`:' · dá conta')}</div>`;
+      row.innerHTML=`<div><b>${esc(it.name)}</b> ${pillRisco}
+          <div class="lbl">${esc(it.subgroup||'—')}</div></div>
+        <div>${col2}</div>
+        <div><b>${usos}/${vida}</b><div class="lbl">${passouVida(it)?'passou da vida':pertoDoFim(it)?'perto do fim':'locações'}</div>
+          <div class="bar ${cls}"><i style="width:${pct}%"></i></div></div>
+        <div><b>${money0(it.price)}</b><div class="lbl">${barato?'<span class="pill bad">abaixo do custo</span>':'sug. '+money0(suggestedPrice(it))}</div></div>
+        <div><b>${money0(it.replacement)}</b><div class="lbl">reposição</div></div>
+        <div class="actions"><button class="small" data-ed>Editar</button></div>`;
+      row.querySelector('[data-ed]').onclick=()=>abrirCatalogo(it);
+      w.appendChild(row);
+    });
+  });
+
+  const invest=state.catalog.reduce((s,it)=>s+(it.qty||0)*(it.purchaseCost||0),0);
+  const falta=state.purchases.filter(p=>['Quero comprar','Aguardando entrega','Repor peça'].includes(p.status))
+    .reduce((s,p)=>s+(p.cost||0)*(p.qty||1),0);
+  const sug=state.catalog.reduce((s,it)=>s+faltaPedir(it),0);
+  const sugR$=state.catalog.reduce((s,it)=>s+faltaPedir(it)*(it.purchaseCost||it.replacement||0),0);
+  const gastas=state.catalog.filter(passouVida).length;
+  $('#acvInvest').textContent=money0(invest);
+  $('#acvInvestSub').textContent=state.catalog.reduce((s,it)=>s+(it.qty||0),0)+' peças no total';
+  $('#acvFalta').textContent=money0(falta);
+  $('#acvFaltaSub').textContent=state.purchases.filter(p=>['Quero comprar','Aguardando entrega','Repor peça']
+    .includes(p.status)).reduce((s,p)=>s+(p.qty||1),0)+' peça(s) na lista de compra';
+  $('#acvSug').textContent=sug;
+  $('#acvSugSub').textContent=sug?('≈ '+money0(sugR$)+' — além do que já está na lista'):'nada faltando';
+  $('#acvGasto').textContent=gastas;
+}
+/* sugestão de compra: o que a conta pede e ainda não está em nenhuma lista */
+function renderSugestoes(){
+  const w=$('#sugList'); w.innerHTML='';
+  const linhas=state.catalog.map(it=>({it,q:faltaPedir(it)})).filter(r=>r.q>0)
+    .sort((a,b)=>ordemPrio(a.it.prioridade)-ordemPrio(b.it.prioridade)
+      ||b.q*(b.it.purchaseCost||0)-a.q*(a.it.purchaseCost||0));
+  const gastas=state.catalog.filter(passouVida);
+  $('#sugTodas').classList.toggle('hidden',!linhas.length);
+  if(!linhas.length&&!gastas.length){
+    w.innerHTML='<div class="muted">Pelo que está cadastrado, o acervo dá conta dos temas e kits de hoje.</div>';
+    return;
+  }
+  linhas.forEach(({it,q})=>{
+    const custo=(it.purchaseCost||it.replacement||0)*q;
+    const d=demandaMax(it.id), f=folgaPecas(it);
+    const r=document.createElement('div'); r.className='sug';
+    r.innerHTML=`<div><b>${q}× ${esc(it.name)}</b>
+      <div class="muted">tem ${it.qty||0} · sai ${d} de uma vez · folga ${f} (risco ${NOME_RISCO[it.risco]||'baixo'})
+        ${custo?' · ≈ '+money0(custo):''}</div></div>
+      <button class="small" data-add>Quero comprar</button>`;
+    r.querySelector('[data-add]').onclick=()=>{mandarParaCompra(it,q);save();renderTudo();
+      toast(`${q}× ${it.name} entrou em "Quero comprar".`)};
+    w.appendChild(r);
+  });
+  gastas.forEach(it=>{
+    const r=document.createElement('div'); r.className='sug';
+    r.innerHTML=`<div><b>${esc(it.name)}</b> <span class="pill bad">passou da vida útil</span>
+      <div class="muted">já rodou ${it.usos||0} de ${it.lifeUses||0} locações. Vale trocar antes de aparecer gasta numa mesa.</div></div>
+      <button class="small" data-add>Repor</button>`;
+    r.querySelector('[data-add]').onclick=()=>{mandarParaCompra(it,it.qty||1,'Repor peça');save();renderTudo();
+      toast(`${it.name} entrou em "Repor peça".`)};
+    w.appendChild(r);
+  });
+}
+function mandarParaCompra(it,q,status){
+  state.purchases.push({id:uid(),name:it.name,cat:`${it.group} > ${it.subgroup||''}`,qty:Math.max(1,q||1),
+    cost:it.purchaseCost||it.replacement||0,salePrice:it.price||0,supplier:'',link:'',
+    status:status||'Quero comprar',linkedCatalogId:it.id,
+    risco:it.risco||'baixo',lifeUses:it.lifeUses||20,prioridade:it.prioridade||'Média'});
+}
+function purchaseRow(x){
+  /* uma coluna so: as colunas de compra sao estreitas e dois botoes nao cabem ao lado do texto */
+  const r=document.createElement('div'); r.className='row'; r.style.gridTemplateColumns='1fr';
+  const lig=x.linkedCatalogId?itemById(x.linkedCatalogId):null;
+  let acao='';
+  /* compra na loja e compra pela internet são coisas diferentes: cada uma tem o seu botão */
+  if(x.status==='Quero comprar')
+    acao='<button class="small primary" data-rec>Já tenho</button><button class="small" data-next>Vai chegar</button>';
+  if(x.status==='Aguardando entrega') acao='<button class="small primary" data-rec>Chegou</button>';
+  if(x.status==='Repor peça') acao='<button class="small primary" data-rec>Repus</button>';
+  const destino=lig?('soma em '+esc(lig.name)):(x.cat?('entra em '+esc(String(x.cat).replace('>','›'))):'<b style="color:var(--warn)">sem grupo definido</b>');
+  const pp=x.prioridade==='Alta'?'<span class="pill bad">Alta</span>'
+        :x.prioridade==='Baixa'?'<span class="pill">Baixa</span>':'<span class="pill warn">Média</span>';
+  r.innerHTML=`<div><b>${esc(x.name)}</b> ${pp}
+    <div class="muted">${x.qty||1}× · ${money0(x.cost||0)} cada · ${money0((x.cost||0)*(x.qty||1))} no total</div>
+    <div class="muted">${destino}${x.recebidoEm?' · entrou em '+esc(x.recebidoEm):''}</div>
+    ${x.supplier||x.link?`<div class="muted">${esc(x.supplier||'')}${x.link?' · <a href="'+esc(x.link)+'" target="_blank" rel="noopener">link</a>':''}</div>`:''}</div>
+    <div class="actions" style="margin-top:9px;justify-content:flex-end">${acao}<button class="small" data-ed>Editar</button></div>`;
+  r.querySelector('[data-ed]').onclick=()=>abrirCompra(x);
+  const next=r.querySelector('[data-next]'); if(next) next.onclick=()=>{x.status='Aguardando entrega';save();renderTudo();
+    toast(`${x.name} está a caminho.`)};
+  const rec=r.querySelector('[data-rec]'); if(rec) rec.onclick=()=>receberCompra(x);
+  return r;
+}
+function receberCompra(x){
+  const q=x.qty||1;
+  let it=x.linkedCatalogId?itemById(x.linkedCatalogId):null;
+  if(it){
+    it.qty=(it.qty||0)+q; if(x.cost) it.purchaseCost=x.cost;
+  }else{
+    /* peça nova: sem grupo definido, não deixa virar "Novo grupo" — pergunta antes */
+    const partes=String(x.cat||'').split('>');
+    let grupo=(partes[0]||'').trim(), sub=(partes[1]||'').trim();
+    if(!grupo){
+      const sugestao=[...new Set(state.catalog.map(c=>c.group).filter(Boolean))].join(', ');
+      const resp=prompt(`Em qual grupo do acervo "${x.name}" entra?`+(sugestao?`\n\nJá existem: ${sugestao}`:''),'Decoração');
+      if(resp===null) return;
+      grupo=resp.trim()||'Sem grupo';
+      const s=prompt('E o subgrupo? (pode deixar vazio)', sub||'');
+      if(s!==null) sub=s.trim();
+      x.cat=`${grupo} > ${sub}`;
+    }
+    it={id:uid(),group:grupo,subgroup:sub,
+      name:x.name,price:x.salePrice||0,replacement:x.cost||0,purchaseCost:x.cost||0,qty:q,
+      lifeUses:Math.max(1,Number(x.lifeUses)||20),maintenancePerUse:0,marginPct:100,
+      risco:x.risco||'baixo',folgaManual:null,usos:0,prioridade:x.prioridade||'Média'};
+    state.catalog.push(it);
+    x.linkedCatalogId=it.id;
+  }
+  x.status='Já entrou no acervo'; x.recebidoEm=hoje();
+  save(); renderTudo();
+  /* leva ela até a peça, para ela ver com os próprios olhos que entrou */
+  grupoFiltro=it.group||''; $('#catalogSearch').value=x.name; $('#acvSoFalta').checked=false;
+  renderCatalog();
+  abrirAba('acv');
+  setTimeout(()=>{const el=$('#catalogGroups'); if(el) el.scrollIntoView({behavior:'smooth',block:'center'})},120);
+  toast(`${q}× ${x.name} está no acervo, em ${it.group}. Limpe a busca para ver o resto.`);
+}
+function renderPurchases(){
+  const alvos={'Quero comprar':$('#buyList'),'Aguardando entrega':$('#orderedList'),'Repor peça':$('#replaceList'),
+    'Já entrou no acervo':$('#archiveList')};
+  Object.values(alvos).forEach(w=>w.innerHTML='');
+  /* prioridade primeiro: com dinheiro contado, o que é Alta tem que estar no topo */
+  state.purchases.slice()
+    .sort((a,b)=>ordemPrio(a.prioridade)-ordemPrio(b.prioridade)
+      ||(b.cost||0)*(b.qty||1)-(a.cost||0)*(a.qty||1))
+    .forEach(x=>{const w=alvos[x.status]; if(w)w.appendChild(purchaseRow(x))});
+  Object.entries(alvos).forEach(([k,w])=>{if(!w.children.length)w.innerHTML='<div class="muted" style="font-size:12.5px">Vazio.</div>'});
+}
+
+/* ================= TEMAS E KITS ================= */
+let packEdit=null;
+let catPack='';
+function renderPackList(){
+  const busca=($('#buscaPack').value||'').toLowerCase();
+  const tipo=$('#filtroTipoPack').value;
+  const w=$('#packList'); w.innerHTML='';
+  const doTipo=state.packs.filter(p=>!tipo||p.kind===tipo);
+  montaChips('#chipsPack',doTipo,catPack,v=>{catPack=v;renderPackList()});
+  const lista=doTipo.filter(p=>naCategoria(p,catPack))
+    .filter(p=>!busca||[p.name,p.desc,p.kind,p.categoria].join(' ').toLowerCase().includes(busca));
+  if(!lista.length){w.innerHTML='<div class="muted">Nada aqui ainda.</div>';}
+  lista.forEach(p=>{
+    const soma=somaPack(p), dif=(Number(p.price)||0)-soma;
+    const r=document.createElement('div'); r.className='row'; r.style.gridTemplateColumns='120px 1fr auto';
+    r.innerHTML=`<div class="fotoprev" style="width:120px${p.foto?`;background-image:url('${p.foto}')`:''}">${p.foto?'':'▦'}</div>
+      <div><b>${esc(p.name)}</b> <span class="pill">${p.kind==='tema'?'Tema':'Kit'}</span> <span class="pill">${esc(p.para)}</span>${p.categoria?` <span class="pill">${esc(p.categoria)}</span>`:''}
+        <div class="muted" style="margin-top:3px">${esc(p.desc||'sem descrição')}</div>
+        <div class="muted" style="margin-top:4px">${(p.items||[]).length} peça(s) · soma ${money0(soma)} ·
+          <b style="color:var(--accent-ink)">preço ${money0(p.price)}</b>
+          ${soma>0?`<span class="pill ${dif<0?'ok':dif>soma*0.25?'warn':''}">${dif<0?money0(-dif)+' abaixo da soma':dif>0?money0(dif)+' acima':'igual à soma'}</span>`:''}</div></div>
+      <div class="actions"><button class="small" data-ed>Editar</button><button class="small" data-dup>Duplicar</button></div>`;
+    r.querySelector('[data-ed]').onclick=()=>abrirPack(p);
+    r.querySelector('[data-dup]').onclick=()=>{state.packs.push({...p,id:uid(),name:p.name+' (cópia)',items:(p.items||[]).map(i=>({...i}))});save();renderTudo()};
+    w.appendChild(r);
+  });
+  const bytes=new Blob([JSON.stringify(state)]).size;
+  $('#pillFotos').textContent=`${state.packs.filter(p=>p.foto).length} com foto · ${(bytes/1024/1024).toFixed(1)} MB usados`;
+}
+function abrirPack(p){
+  packEdit=p;
+  $('#packEditTitulo').textContent=p.name||'Novo';
+  $('#packNome').value=p.name||''; $('#packTipo').value=p.kind||'tema'; $('#packPara').value=p.para||'Ambos';
+  $('#packDesc').value=p.desc||''; $('#packPreco').value=p.price||0; $('#packBusca').value='';
+  $('#packCategoria').value=p.categoria||'';
+  const dlc=$('#categoriasConhecidas'); dlc.innerHTML='';
+  [...new Set(state.packs.map(x=>x.categoria).filter(Boolean))].sort().forEach(c=>{
+    const o=document.createElement('option'); o.value=c; dlc.appendChild(o)});
+  $('#packFotoPrev').style.backgroundImage=p.foto?`url('${p.foto}')`:'';
+  $('#packFotoPrev').textContent=p.foto?'':'＋';
+  renderPackItens();
+  $('#packEditModal').classList.remove('hidden');
+}
+function renderPackItens(){
+  const w=$('#packItensEdit'); w.innerHTML='';
+  const busca=($('#packBusca').value||'').toLowerCase();
+  const atual={}; (packEdit.items||[]).forEach(r=>atual[r.catalogId]=r.qty);
+  state.catalog.filter(it=>!busca||[it.name,it.group,it.subgroup].join(' ').toLowerCase().includes(busca)).forEach(it=>{
+    const row=document.createElement('div'); row.className='line';
+    row.innerHTML=`<div><b>${esc(it.name)}</b><div class="muted">${money0(it.price)} · tem ${it.qty||0}</div></div>
+      <input type="number" min="0" value="${atual[it.id]||0}" data-id="${it.id}">`;
+    row.querySelector('input').oninput=e=>{
+      const q=Math.max(0,+e.target.value||0);
+      packEdit.items=(packEdit.items||[]).filter(r=>r.catalogId!==it.id);
+      if(q>0) packEdit.items.push({catalogId:it.id,qty:q});
+      atualizaPackSoma();
+    };
+    w.appendChild(row);
+  });
+  atualizaPackSoma();
+}
+function atualizaPackSoma(){
+  const soma=somaPack(packEdit);
+  $('#packSoma').value=money(soma);
+  const preco=Number($('#packPreco').value)||0;
+  const rep=reposicaoPack(packEdit.items);
+  let msg=`Soma das peças: ${money0(soma)}. Reposição das peças: ${money0(rep)}.`;
+  if(soma>0&&preco===0) msg+=` Sugestão: ${money0(Math.round(soma*0.9/10)*10)} — 10% abaixo da soma vende melhor e move mais peça.`;
+  else if(preco>0&&preco<soma*0.7) msg+=` ⚠ O preço está bem abaixo da soma. Confira se não está dando desconto demais.`;
+  $('#packAviso').textContent=msg;
+}
+/* foto: reduz antes de guardar, senão o navegador enche */
+function comprimirImagem(file,cb){
+  const fr=new FileReader();
+  fr.onload=()=>{
+    const img=new Image();
+    img.onload=()=>{
+      const max=760, esc=Math.min(1,max/img.width);
+      const cv=document.createElement('canvas');
+      cv.width=Math.round(img.width*esc); cv.height=Math.round(img.height*esc);
+      cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
+      cb(cv.toDataURL('image/jpeg',0.72));
+    };
+    img.onerror=()=>cb(null);
+    img.src=fr.result;
+  };
+  fr.onerror=()=>cb(null);
+  fr.readAsDataURL(file);
+}
+
+/* ================= CATÁLOGO E COMPRAS: modais ================= */
+let catEdit=null, compraEdit=null;
+function abrirCatalogo(it){
+  catEdit=it;
+  $('#editCatalogGroup').value=it.group||''; $('#editCatalogSubgroup').value=it.subgroup||'';
+  $('#editCatalogName').value=it.name||''; $('#editCatalogQty').value=it.qty||0;
+  $('#editCatalogCost').value=it.purchaseCost||0; $('#editCatalogLife').value=it.lifeUses||20;
+  $('#editCatalogMaint').value=it.maintenancePerUse||0; $('#editCatalogMargin').value=it.marginPct||100;
+  $('#editCatalogPrice').value=it.price||0; $('#editCatalogReplacement').value=it.replacement||0;
+  $('#editCatalogRisco').value=it.risco||'baixo';
+  $('#editCatalogPrioridade').value=it.prioridade||'Média';
+  $('#editCatalogFolga').value=(it.folgaManual===null||it.folgaManual===undefined)?'':it.folgaManual;
+  $('#editCatalogUsos').value=it.usos||0;
+  atualizaCatalogoAviso(); atualizaEstoqueAviso();
+  $('#catalogEditModal').classList.remove('hidden');
+}
+function atualizaEstoqueAviso(){
+  if(!catEdit)return;
+  const d=demandaMax(catEdit.id);
+  const manual=$('#editCatalogFolga').value;
+  const risco=$('#editCatalogRisco').value;
+  const folga=manual!==''?Math.max(0,+manual||0)
+    :(d>0&&(FOLGA_RISCO[risco]||0)>0?Math.max(1,Math.ceil(d*FOLGA_RISCO[risco])):0);
+  const ideal=d+folga, tem=Math.max(0,+$('#editCatalogQty').value||0), falta=Math.max(0,ideal-tem);
+  const usos=Math.max(0,+$('#editCatalogUsos').value||0), vida=Math.max(1,+$('#editCatalogLife').value||1);
+  $('#editCatalogDemanda').value=d?`${d} por evento`:'não está em nenhum tema ou kit';
+  const box=$('#editCatalogEstoque');
+  box.className='notice'+(falta>0?' warn':'');
+  let msg=d>0
+    ? `O tema ou kit que mais usa esta peça leva <b>${d}</b> de uma vez. Com a folga de <b>${folga}</b>, o ideal é ter <b>${ideal}</b>. Você tem ${tem}.`
+    : `Esta peça não entra em nenhum tema ou kit ainda, então a conta de volume não tem de onde partir.`;
+  if(falta>0) msg+=` <b>Faltam ${falta}.</b>`;
+  if(usos>=vida&&tem>0) msg+=`<br>⚠ Já rodou ${usos} de ${vida} locações — passou da vida útil que você definiu.`;
+  box.innerHTML=msg;
+}
+function atualizaCatalogoAviso(){
+  const fake={purchaseCost:+$('#editCatalogCost').value||0,lifeUses:+$('#editCatalogLife').value||1,
+    maintenancePerUse:+$('#editCatalogMaint').value||0,marginPct:+$('#editCatalogMargin').value||0};
+  const cu=costPerUse(fake), sug=suggestedPrice(fake), praticado=+$('#editCatalogPrice').value||0;
+  const box=$('#editCatalogAviso');
+  box.className='notice'+(praticado>0&&praticado<cu?' bad':'');
+  box.innerHTML=`Custo por uso: <b>${money(cu)}</b> · Sugerido com ${fake.marginPct}% de margem: <b>${money(sug)}</b>`+
+    (praticado>0&&praticado<cu?`<br><b>Atenção:</b> você está cobrando ${money(praticado)}, menos do que a peça custa por locação. Cada aluguel dá prejuízo.`:'');
+}
+function abrirCompra(x){
+  compraEdit=x;
+  $('#editPurchaseName').value=x.name||''; $('#editPurchaseQty').value=x.qty||1;
+  $('#editPurchaseCost').value=x.cost||0; $('#editPurchaseSale').value=x.salePrice||0;
+  $('#editPurchaseSupplier').value=x.supplier||''; $('#editPurchaseStatus').value=x.status||'Quero comprar';
+  $('#editPurchaseLink').value=x.link||'';
+  const sel=$('#editPurchaseLinked'); sel.innerHTML='<option value="">Peça nova</option>';
+  state.catalog.forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=c.name;sel.appendChild(o)});
+  sel.value=x.linkedCatalogId||'';
+  const partes=String(x.cat||'').split('>');
+  $('#editPurchaseGroup').value=(partes[0]||'').trim();
+  $('#editPurchaseSubgroup').value=(partes[1]||'').trim();
+  $('#editPurchaseRisco').value=x.risco||'baixo';
+  $('#editPurchasePrioridade').value=x.prioridade||'Média';
+  $('#editPurchaseLife').value=x.lifeUses||'';
+  const dl=$('#gruposConhecidos'); dl.innerHTML='';
+  [...new Set(state.catalog.map(c=>c.group).filter(Boolean))].sort().forEach(g=>{
+    const o=document.createElement('option'); o.value=g; dl.appendChild(o)});
+  atualizaPurchaseNova();
+  $('#purchaseEditModal').classList.remove('hidden');
+}
+/* se a compra repõe uma peça que já existe, o grupo vem dela — não precisa perguntar */
+function atualizaPurchaseNova(){
+  $('#purchaseNovaBox').classList.toggle('hidden',!!$('#editPurchaseLinked').value);
+}
+
+/* ================= RESUMO ================= */
+function diasAte(iso){if(!iso)return 9999;const a=new Date(iso+'T12:00:00'),b=new Date();b.setHours(12,0,0,0);
+  return Math.round((a-b)/86400000)}
+function renderResumo(){
+  const arr=state.orders;
+  const abertos=arr.filter(o=>!['Finalizado','Cancelado'].includes(o.status));
+  const futuros=abertos.filter(o=>diasAte(o.pickupDate)>=0)
+    .sort((a,b)=>String(a.pickupDate||'9999').localeCompare(String(b.pickupDate||'9999')));
+  $('#rAbertos').textContent=abertos.length;
+  $('#rAbertosSub').textContent=futuros.length?('próximo em '+(fmtDate(futuros[0].pickupDate)||'—')):'nada marcado';
+  $('#rReceber').textContent=money(arr.filter(o=>ATIVOS.includes(o.status))
+    .reduce((s,o)=>s+Math.max(0,o.total-(o.payments||[]).reduce((a,p)=>a+p.value,0)),0));
+  $('#rPecas').textContent=state.catalog.reduce((s,it)=>s+(it.qty||0),0);
+  $('#rPecasSub').textContent=state.catalog.length+' tipos de peça';
+  const compras=state.purchases.filter(p=>['Quero comprar','Aguardando entrega','Repor peça'].includes(p.status));
+  const sugPend=state.catalog.reduce((s,it)=>s+faltaPedir(it),0);
+  $('#rComprar').textContent=compras.reduce((s,p)=>s+(p.qty||1),0)+sugPend;
+  $('#rComprarSub').textContent=money0(compras.reduce((s,p)=>s+(p.cost||0)*(p.qty||1),0)
+    +state.catalog.reduce((s,it)=>s+faltaPedir(it)*(it.purchaseCost||it.replacement||0),0))
+    +(sugPend?` · ${sugPend} ainda sem pedir`:'');
+
+  const pw=$('#rProximos'); pw.innerHTML='';
+  if(!futuros.length) pw.innerHTML='<div class="muted">Nenhum evento marcado.</div>';
+  futuros.slice(0,6).forEach(o=>{
+    const d=diasAte(o.pickupDate);
+    const pago=(o.payments||[]).reduce((a,p)=>a+p.value,0), saldo=Math.max(0,o.total-pago);
+    const el=document.createElement('div'); el.className='row'; el.style.gridTemplateColumns='1fr auto';
+    el.innerHTML=`<div><b>${esc(o.client||'Sem nome')}</b> <span class="pill">${esc(o.status)}</span>
+      <div class="muted">${fmtDate(o.pickupDate)||'—'} ${d===0?'· hoje':d>0&&d<=30?'· em '+d+' dias':''} · ${esc(o.packName||'')}</div></div>
+      <div style="text-align:right"><b>${money0(o.total)}</b><div class="muted">${saldo>0?'falta '+money0(saldo):'pago'}</div></div>`;
+    pw.appendChild(el);
+  });
+
+  const aw=$('#rAlertas'); aw.innerHTML=''; const al=[];
+  state.catalog.filter(abaixoDoCusto).forEach(it=>
+    al.push(['bad',`<b>${esc(it.name)}</b> está alugando por ${money0(it.price)}, abaixo do custo por uso de ${money(costPerUse(it))}.`]));
+  arr.filter(o=>ATIVOS.includes(o.status)&&!(Number(o.deposit)>0)&&(o.caucaoSugerida||0)>0).forEach(o=>
+    al.push(['warn',`Pedido de <b>${esc(o.client||'sem nome')}</b> está confirmado e a caução de ${money0(o.caucaoSugerida)} não foi registrada.`]));
+  arr.filter(o=>o.status==='Aguardando devolução'&&diasAte(o.returnDate)<0).forEach(o=>
+    al.push(['bad',`<b>${esc(o.client||'sem nome')}</b> está com as peças atrasadas desde ${fmtDate(o.returnDate)}. Multa de ${money0(state.settings.lateFee)} por dia.`]));
+  state.purchases.filter(p=>p.status==='Repor peça').forEach(p=>
+    al.push(['warn',`Falta repor ${p.qty||1}× <b>${esc(p.name)}</b>.`]));
+  state.catalog.filter(passouVida).forEach(it=>
+    al.push(['bad',`<b>${esc(it.name)}</b> já rodou ${it.usos} de ${it.lifeUses} locações — passou da vida útil. Vale trocar antes de aparecer gasta.`]));
+  state.catalog.map(it=>({it,q:faltaPedir(it)})).filter(r=>r.q>0)
+    .sort((a,b)=>b.q-a.q).slice(0,4).forEach(({it,q})=>
+      al.push(['warn',`Faltam <b>${q}× ${esc(it.name)}</b> para atender um evento com folga — sai ${demandaMax(it.id)} de uma vez e você tem ${it.qty||0}.`]));
+  state.catalog.filter(it=>!passouVida(it)&&pertoDoFim(it)).slice(0,3).forEach(it=>
+    al.push(['',`<b>${esc(it.name)}</b> está perto do fim da vida útil: ${it.usos} de ${it.lifeUses} locações.`]));
+  state.packs.filter(p=>(p.items||[]).length&&!p.foto).slice(0,3).forEach(p=>
+    al.push(['',`<b>${esc(p.name)}</b> ainda não tem foto. Tema sem foto não vende.`]));
+  if(!al.length) aw.innerHTML='<div class="muted">Tudo em ordem por aqui.</div>';
+  al.slice(0,12).forEach(([t,txt])=>{
+    const d=document.createElement('div'); d.className='notice'+(t?' '+t:''); d.innerHTML=txt; aw.appendChild(d);
+  });
+}
+
+/* ================= CONFIGURAÇÕES ================= */
+function loadCfg(){
+  const s=state.settings;
+  $('#cfgEmpresa').value=s.empresa||''; $('#cfgDocEmpresa').value=s.docEmpresa||'';
+  $('#cfgResp').value=s.resp||''; $('#cfgContato').value=s.contato||'';
+  $('#cfgSignal').value=s.signalPercent; $('#cfgDepositPct').value=s.depositPct;
+  $('#cfgDeposit').value=s.deposit; $('#cfgLateFee').value=s.lateFee;
+  $('#cfgValidade').value=s.validade; $('#cfgFolga').value=s.folga; $('#cfgPix').value=s.pix||'';
+  $('#cfgDocs').value=s.docs||''; $('#cfgPagto').value=s.pagto||''; $('#cfgRules').value=s.rules||'';
+  $('#cfgCaucaoHint').textContent=`A caução de cada pedido sai de ${s.depositPct}% do valor de reposição das peças que saem, com um mínimo de ${money0(s.deposit)}.`;
+  const bytes=new Blob([JSON.stringify(state)]).size;
+  $('#usoHint').textContent=`Hoje os dados ocupam ${(bytes/1024/1024).toFixed(2)} MB. O navegador costuma aguentar uns 5 MB — fotos são o que pesa.`;
+}
+
+/* ================= NAVEGAÇÃO ================= */
+function abrirAba(t){
+  $$('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===t));
+  $$('[data-panel]').forEach(p=>p.classList.toggle('hidden',p.dataset.panel!==t));
+  if(t==='cfg')loadCfg();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function renderTudo(){renderOrcamento();renderOrders();renderCatalog();renderSugestoes();renderPurchases();renderPackList();renderResumo()}
+
+/* ================= EVENTOS ================= */
+$$('.tab').forEach(b=>b.onclick=()=>abrirAba(b.dataset.tab));
+$('#irProdutos').onclick=()=>abrirAba('pro');
+['client','phone','doc','loc','logNotes','logValue'].forEach(id=>$('#'+id).oninput=updateSummary);
+$('#type').onchange=()=>{packSel=null;removidos.clear();catTema='';catKit='';renderOrcamento()};
+$$('#segPack button').forEach(b=>b.onclick=()=>{
+  vistaPack=b.dataset.psel;
+  if(vistaPack==='zero'&&packSel!==null){packSel=null;removidos.clear()}
+  renderOrcamento();
+});
+$('#buscaTema').oninput=renderTemas;
+$('#buscaKit').oninput=renderKits;
+['pickupDate','pickupTime','returnDate','returnTime'].forEach(id=>$('#'+id).onchange=renderOrcamento);
+$('#logType').onchange=updateSummary;
+$('#buscaExtra').oninput=renderExtras;
+$('#addPersonalized').onclick=()=>{personalizedRows.push({type:'',detail:'',value:0});renderPersonalized();updateSummary()};
+$('#cancelarEdicao').onclick=()=>{limparOrcamento();toast('Edição cancelada. O pedido original ficou como estava.')};
+$('#novoOrcamento').onclick=()=>{limparOrcamento();toast('Pronto para um novo orçamento.')};
+
+$('#saveOrder').onclick=()=>{
+  if(!$('#client').value.trim()){toast('Falta o nome da cliente.');$('#client').focus();return}
+  const {s,e}=periodo();
+  if(s===null||e===null){toast('Preencha as datas de retirada e devolução.');return}
+  if(e<=s){toast('A devolução precisa ser depois da retirada.');return}
+  const faltas=problemasDisponibilidade();
+  if(faltas.length && !confirm('Neste período não há peça suficiente:\n\n'+faltas.join('\n')+'\n\nSalvar assim mesmo?')) return;
+  const novo=rascunho();
+  if(editandoId){
+    const i=state.orders.findIndex(o=>o.id===editandoId);
+    if(i>=0){
+      const antigo=state.orders[i];
+      state.orders[i]=Object.assign({},antigo,novo,{id:antigo.id,status:antigo.status,
+        payments:antigo.payments||[],deposit:antigo.deposit||0,returns:antigo.returns||[]});
+      toast('Pedido de '+novo.client+' atualizado.');
+    }
+    limparOrcamento();
+  }else{
+    novo.id=uid(); state.orders.push(novo);
+    toast('Pedido salvo. Está na aba Pedidos.');
+    limparOrcamento();
+  }
+  save(); renderTudo();
+};
+$('#copyBudget').onclick=()=>copiar($('#whatsText').value,'Orçamento copiado.');
+$('#copyConfirm').onclick=()=>copiar($('#confirmText').value,'Confirmação copiada.');
+function copiar(txt,ok){
+  try{navigator.clipboard.writeText(txt).then(()=>toast(ok),()=>toast('Não consegui copiar. Selecione o texto e use Ctrl+C.'))}
+  catch(e){toast('Não consegui copiar. Selecione o texto e use Ctrl+C.')}
+}
+$('#previewWithdraw').onclick=()=>showDocument(withdrawalDocumentHTML(rascunho()));
+$('#previewReturn').onclick=()=>showDocument(returnDocumentHTML(rascunho()));
+$('#printDoc').onclick=()=>window.print();
+$('#closeDoc').onclick=()=>$('#docModal').classList.add('hidden');
+$('#filtroPedidos').onchange=renderOrders;
+
+$('#addCatalog').onclick=()=>{
+  const it={id:uid(),group:'Novo grupo',subgroup:'',name:'Nova peça',price:0,replacement:0,purchaseCost:0,qty:0,
+    lifeUses:20,maintenancePerUse:0,marginPct:100,risco:'baixo',folgaManual:null,usos:0,prioridade:'Média'};
+  state.catalog.push(it); save(); abrirCatalogo(it);
+};
+$('#catalogSearch').oninput=renderCatalog;
+$('#acvSoFalta').onchange=renderCatalog;
+$('#sugTodas').onclick=()=>{
+  const linhas=state.catalog.map(it=>({it,q:faltaPedir(it)})).filter(r=>r.q>0);
+  if(!linhas.length)return;
+  if(!confirm(`Jogar ${linhas.length} item(ns) em "Quero comprar"?`))return;
+  linhas.forEach(({it,q})=>mandarParaCompra(it,q));
+  save(); renderTudo(); toast(linhas.length+' item(ns) na lista de compra.');
+};
+$('#closeCatalogEdit').onclick=()=>{$('#catalogEditModal').classList.add('hidden');renderTudo()};
+['editCatalogCost','editCatalogLife','editCatalogMaint','editCatalogMargin','editCatalogPrice']
+  .forEach(id=>$('#'+id).oninput=()=>{atualizaCatalogoAviso();atualizaEstoqueAviso()});
+['editCatalogQty','editCatalogFolga','editCatalogUsos'].forEach(id=>$('#'+id).oninput=atualizaEstoqueAviso);
+$('#editCatalogRisco').onchange=atualizaEstoqueAviso;
+$('#saveCatalogEdit').onclick=()=>{
+  if(!catEdit)return;
+  const folgaTxt=$('#editCatalogFolga').value;
+  Object.assign(catEdit,{group:$('#editCatalogGroup').value.trim()||'Sem grupo',subgroup:$('#editCatalogSubgroup').value.trim(),
+    name:$('#editCatalogName').value.trim()||'Sem nome',qty:Math.max(0,+$('#editCatalogQty').value||0),
+    purchaseCost:Math.max(0,+$('#editCatalogCost').value||0),lifeUses:Math.max(1,+$('#editCatalogLife').value||1),
+    maintenancePerUse:Math.max(0,+$('#editCatalogMaint').value||0),marginPct:Math.max(0,+$('#editCatalogMargin').value||0),
+    price:Math.max(0,+$('#editCatalogPrice').value||0),replacement:Math.max(0,+$('#editCatalogReplacement').value||0),
+    risco:$('#editCatalogRisco').value||'baixo',
+    prioridade:$('#editCatalogPrioridade').value||'Média',
+    folgaManual:folgaTxt===''?null:Math.max(0,+folgaTxt||0),
+    usos:Math.max(0,+$('#editCatalogUsos').value||0)});
+  save(); $('#catalogEditModal').classList.add('hidden'); renderTudo(); toast('Peça salva.');
+};
+$('#delCatalogEdit').onclick=()=>{
+  if(!catEdit||!confirm(`Excluir "${catEdit.name}" do acervo?`))return;
+  state.catalog=state.catalog.filter(c=>c.id!==catEdit.id);
+  state.packs.forEach(p=>p.items=(p.items||[]).filter(r=>r.catalogId!==catEdit.id));
+  save(); $('#catalogEditModal').classList.add('hidden'); renderTudo();
+};
+
+$('#addInv').onclick=()=>{
+  const x={id:uid(),name:'Novo item',cat:'',qty:1,cost:0,salePrice:0,supplier:'',link:'',status:'Quero comprar',
+    linkedCatalogId:null,risco:'baixo',lifeUses:20,prioridade:'Média'};
+  state.purchases.push(x); save(); abrirCompra(x);
+};
+$('#closePurchaseEdit').onclick=()=>{$('#purchaseEditModal').classList.add('hidden');renderTudo()};
+$('#editPurchaseLinked').onchange=atualizaPurchaseNova;
+$('#savePurchaseEdit').onclick=()=>{
+  if(!compraEdit)return;
+  const g=$('#editPurchaseGroup').value.trim(), s=$('#editPurchaseSubgroup').value.trim();
+  Object.assign(compraEdit,{name:$('#editPurchaseName').value.trim()||'Sem nome',
+    qty:Math.max(1,+$('#editPurchaseQty').value||1),cost:Math.max(0,+$('#editPurchaseCost').value||0),
+    salePrice:Math.max(0,+$('#editPurchaseSale').value||0),supplier:$('#editPurchaseSupplier').value,
+    status:$('#editPurchaseStatus').value,link:$('#editPurchaseLink').value,
+    linkedCatalogId:$('#editPurchaseLinked').value||null,
+    cat:g?`${g} > ${s}`:'',
+    risco:$('#editPurchaseRisco').value||'baixo',
+    prioridade:$('#editPurchasePrioridade').value||'Média',
+    lifeUses:Math.max(1,+$('#editPurchaseLife').value||20)});
+  save(); $('#purchaseEditModal').classList.add('hidden'); renderTudo(); toast('Item salvo.');
+};
+$('#delPurchaseEdit').onclick=()=>{
+  if(!compraEdit||!confirm(`Excluir "${compraEdit.name}"?`))return;
+  state.purchases=state.purchases.filter(p=>p.id!==compraEdit.id);
+  save(); $('#purchaseEditModal').classList.add('hidden'); renderTudo();
+};
+
+$('#addTema').onclick=()=>{const p={id:uid(),kind:'tema',name:'Novo tema',para:'Social',foto:'',desc:'',categoria:'',price:0,items:[]};
+  state.packs.push(p);save();abrirPack(p)};
+$('#addKit').onclick=()=>{const p={id:uid(),kind:'kit',name:'Novo kit',para:'Ambos',foto:'',desc:'',categoria:'',price:0,items:[]};
+  state.packs.push(p);save();abrirPack(p)};
+$('#buscaPack').oninput=renderPackList;
+$('#filtroTipoPack').onchange=()=>{catPack='';renderPackList()};
+$('#packBusca').oninput=renderPackItens;
+$('#packPreco').oninput=atualizaPackSoma;
+$('#closePackEdit').onclick=()=>{$('#packEditModal').classList.add('hidden');renderTudo()};
+$('#savePackEdit').onclick=()=>{
+  if(!packEdit)return;
+  packEdit.name=$('#packNome').value.trim()||'Sem nome';
+  packEdit.kind=$('#packTipo').value; packEdit.para=$('#packPara').value;
+  packEdit.desc=$('#packDesc').value.trim();
+  packEdit.categoria=$('#packCategoria').value.trim();
+  packEdit.price=Math.max(0,+$('#packPreco').value||0);
+  save(); $('#packEditModal').classList.add('hidden'); renderTudo(); toast('Salvo.');
+};
+$('#delPackEdit').onclick=()=>{
+  if(!packEdit||!confirm(`Excluir "${packEdit.name}"?`))return;
+  state.packs=state.packs.filter(p=>p.id!==packEdit.id);
+  if(packSel===packEdit.id)packSel=null;
+  save(); $('#packEditModal').classList.add('hidden'); renderTudo();
+};
+$('#packFotoInput').onchange=e=>{
+  const f=e.target.files&&e.target.files[0]; if(!f||!packEdit)return;
+  comprimirImagem(f,url=>{
+    if(!url){toast('Não consegui ler essa imagem.');return}
+    packEdit.foto=url;
+    $('#packFotoPrev').style.backgroundImage=`url('${url}')`;
+    $('#packFotoPrev').textContent='';
+    save(); renderPackList();
+    toast('Foto guardada.');
+  });
+  e.target.value='';
+};
+$('#packFotoRemover').onclick=()=>{if(!packEdit)return;packEdit.foto='';
+  $('#packFotoPrev').style.backgroundImage='';$('#packFotoPrev').textContent='＋';save();renderPackList()};
+
+['calcPurchase','calcFreight','calcQty','calcLife','calcMaint','calcMargin'].forEach(id=>$('#'+id).oninput=calcPeca);
+function calcPeca(){
+  const compra=+$('#calcPurchase').value||0, frete=+$('#calcFreight').value||0;
+  const qtd=Math.max(1,+$('#calcQty').value||1), vida=Math.max(1,+$('#calcLife').value||1);
+  const manut=+$('#calcMaint').value||0, margem=+$('#calcMargin').value||0;
+  const unit=(compra+frete)/qtd, uso=unit/vida+manut, sug=uso*(1+margem/100);
+  $('#calcUnit').textContent=money(unit); $('#calcUse').textContent=money(uso);
+  $('#calcSuggested').textContent=money(sug);
+  $('#calcPayback').textContent=sug>0?Math.ceil(unit/sug)+' locações':'—';
+}
+
+$('#saveCfg').onclick=()=>{
+  state.settings=Object.assign(state.settings,{
+    empresa:$('#cfgEmpresa').value.trim(),docEmpresa:$('#cfgDocEmpresa').value.trim(),
+    resp:$('#cfgResp').value.trim(),contato:$('#cfgContato').value.trim(),
+    signalPercent:Math.max(0,Math.min(100,+$('#cfgSignal').value||0)),
+    depositPct:Math.max(0,Math.min(100,+$('#cfgDepositPct').value||0)),
+    deposit:Math.max(0,+$('#cfgDeposit').value||0),
+    lateFee:Math.max(0,+$('#cfgLateFee').value||0),
+    validade:Math.max(1,+$('#cfgValidade').value||1),
+    folga:Math.max(0,+$('#cfgFolga').value||0),
+    pix:$('#cfgPix').value.trim(),docs:$('#cfgDocs').value,pagto:$('#cfgPagto').value,rules:$('#cfgRules').value});
+  save(); loadCfg(); renderTudo(); toast('Configurações salvas.');
+};
+$('#restaurarTexto').onclick=()=>{if(confirm('Substituir o texto atual pelas condições sugeridas?')){$('#cfgRules').value=REGRAS_PADRAO;}};
+$('#exportar').onclick=()=>{
+  const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='gestao-eventos-'+new Date().toISOString().slice(0,10)+'.json';
+  a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+  toast('Cópia baixada.');
+};
+$('#baixarSistema').onclick=async()=>{
+  toast('Montando o arquivo...');
+  let fonte=null;
+  try{
+    const r=await fetch(location.href,{cache:'no-store'});
+    if(r.ok) fonte=await r.text();
+  }catch(e){}
+  if(!fonte||fonte.indexOf('gestao_eventos_v22')===-1){
+    /* serializa a própria página, sem a semente que já estiver nela */
+    const clone=document.documentElement.cloneNode(true);
+    clone.querySelectorAll('#dados-embutidos').forEach(n=>n.remove());
+    fonte='<!doctype html>\n'+clone.outerHTML;
+  }
+  /* a marca é montada em pedaços de propósito: se aparecesse inteira aqui,
+     a limpeza encontraria a si mesma e cortaria o arquivo ao meio */
+  const ABRE='<scr'+'ipt id="dados-embutidos" type="application/json">';
+  const FECHA='<'+'/scr'+'ipt>';
+  let ini=fonte.indexOf(ABRE);
+  while(ini>=0){
+    const fim=fonte.indexOf(FECHA,ini);
+    if(fim<0)break;
+    fonte=fonte.slice(0,ini)+fonte.slice(fim+FECHA.length).replace(/^\s*\n/,'');
+    ini=fonte.indexOf(ABRE);
+  }
+  const dados=JSON.stringify(state).split('<'+'/').join('<\\/');
+  const bloco=ABRE+dados+FECHA+'\n';
+  /* entra logo depois de <body>: o programa lê os dados quando roda, e ele roda no fim da página */
+  const m=fonte.match(/<body[^>]*>/);
+  if(m){ const i=fonte.indexOf(m[0])+m[0].length; fonte=fonte.slice(0,i)+'\n'+bloco+fonte.slice(i); }
+  else fonte=bloco+fonte;
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([fonte],{type:'text/html'}));
+  a.download='gestao-eventos-'+VERSAO+'-'+new Date().toISOString().slice(0,10)+'.html';
+  a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),3000);
+  toast('Baixado. Esse arquivo tem o sistema e os seus dados juntos.');
+};
+$('#importarBtn').onclick=()=>$('#importar').click();
+$('#importar').onchange=e=>{
+  const f=e.target.files&&e.target.files[0]; if(!f)return;
+  const fr=new FileReader();
+  fr.onload=()=>{
+    try{
+      const o=JSON.parse(fr.result);
+      if(!o||!o.catalog)throw new Error('formato');
+      if(!confirm('Isso substitui tudo que está neste navegador. Continuar?'))return;
+      state=o; normalizar(); save(); loadCfg(); renderTudo();
+      toast('Dados restaurados. As peças ganharam os campos novos de risco e uso.');
+    }catch(err){toast('Arquivo inválido.')}
+  };
+  fr.readAsText(f); e.target.value='';
+};
+$$('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.add('hidden')}));
+
+$('#subtitulo').textContent='Aluguel de decoração · '+VERSAO+' · atualizado em '+CONSTRUIDO.split('-').reverse().join('/');
+loadCfg(); calcPeca(); renderTudo();
+</script>
+</body>
+</html>
